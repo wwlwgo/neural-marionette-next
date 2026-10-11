@@ -42,7 +42,7 @@ npm test
 npm run build
 ```
 
-当前基线有 65 项 Node 单元测试。GitHub Actions 已配置对 main 推送及 PR 运行依赖安装、单元测试和构建。浏览器与真人验收步骤见 [交接手册](HANDOFF.md)。
+当前有 91 项 Node 单元测试（含原有 65 项基线）。GitHub Actions 已配置对 main 推送及 PR 运行依赖安装、单元测试和构建。浏览器与真人验收步骤见 [交接手册](HANDOFF.md)。
 
 ## M3 实时施法试演
 
@@ -50,6 +50,7 @@ npm run build
 
 ## 文档
 
+- [M1 开发者开工与 M1 → M3 交接协议](docs/M1_M3_HANDOFF.md)
 - [儿童互动绘本 MVP 框架与模块接口](docs/PRODUCT_SPEC.md)
 - [三模块开发与双人协作计划](docs/PROJECT_STAGES.md)
 - [三模块 MVP 接口协议](docs/MODULE_INTERFACES.md)

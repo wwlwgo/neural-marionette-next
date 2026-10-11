@@ -2,6 +2,33 @@
 
 2026-10-11 · schemaVersion 1。M1 独立实现录入；M3 已实现本文的配置读取、模板匹配、3D 演出和结果回传。本轮使用固定动作替代 M1，自动验证 M3，不安排真人试演。
 
+## 给 M1 开发者：拉取与开工
+
+仓库：`https://github.com/wwlwgo/neural-marionette-next`。本次交付分支为 `codex/m3-performance`；M3 功能提交为 `fbfb425`，该分支还包含完整实现及此前修复。请基于此分支开发 M1，避免从尚未包含 M3 接口的旧分支开始。
+
+在本地仓库中执行以下命令。`feature/m1-capture` 是建议的新开发分支名；如已有自己的开发分支，先保存当前工作，再合入 `origin/codex/m3-performance`。
+
+```sh
+git fetch origin
+git switch -c feature/m1-capture origin/codex/m3-performance
+npm ci
+npm run dev
+```
+
+打开 `http://127.0.0.1:5180/m3.html`，无需摄像头即可播放示范。先阅读本文，再参考 [总接口](MODULE_INTERFACES.md) 和 [完整样例](../fixtures/m3/fixed-upper-body.bundle.json)。
+
+当前分工：同伴实现 M1 录入与作品确认，本分支提供 M3 演出及可共享的身体追踪、归一化、样本校验和存储。M1 的最小交付顺序：
+
+1. 复用 `PoseTracker`，依次录入肩肘腕的三个动作，分别绑定开始、蓄力、释放。
+2. 为每次录入分配新 sampleId，保存原始归一化帧并选出稳定模板帧；提供回放和重录。
+3. 使用 `prepareTemplates` 验证三动作有效且可区分，完成排练后确认不可变作品版本。
+4. 将样本保存到共享 SampleStore，交出作品的 motion、spellRef、avatarId 和 effect；联调时也可导出本文规定的 JSON 包。
+5. 在 M3 导入自己的样本，确认示范与录入动作一致，且三个阶段完成后只返回一次对应作品的结果。
+
+不要把临时 W/T/Y 姿势限制写入 M1。可复用代码位于 `src/motion/pose-tracker.js`、`pose-frame.js`、`templates.js`，演出组件入口为 `src/performance/module.js`。原首页仍为 V2 手部控制，M1 可单独建入口，避免覆盖 `m3.html`。
+
+本次交付验证：91 项 Node 测试、构建及 M3 浏览器回归通过；包括替换成胸前收手释放的独立样本、导入后刷新恢复、三轮演出、暂停取消和追踪丢失恢复。真人录入适配在 M1 接入后验证。
+
 ## 三个阶段与临时动作
 
 | order | semantic | 临时上半身动作 | targetPhase / M3 行为 |
