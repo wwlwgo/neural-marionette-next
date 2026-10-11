@@ -1,0 +1,5 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>绘本朗读预览</title><body><div id="app"></div><script type="module">
+import '../src/style.css';import {createBookPlayer} from '../src/player.js';
+const player=createBookPlayer(document.querySelector('#app'));
+await player.load('/book/manifest.json');player.start({autoAdvance:true});
+</script></body></html>

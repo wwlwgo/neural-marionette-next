@@ -21,9 +21,15 @@ __pycache__/
 *.avi
 *.mkv
 !docs/images/camera-off.png
+!story-assets/moon-book-watercolor-v1/*.png
+!story-player/screenshots/narration-preview.png
 docs/evidence/
 docs/reference-audit/
 tests/generated/
 recordings/
 my-gestures-*.json
 neural-marionette-diagnostics-*.json
+
+# Keep approved moon references; exclude abandoned local integration drafts.
+!story-player/assets/source/moon/approved-reference-v1/*.png
+story-player/assets/source/moon/rejected-v1/

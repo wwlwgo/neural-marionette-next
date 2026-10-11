@@ -33,9 +33,11 @@ npm run dev
 
 | order | semantic | 临时上半身动作 | targetPhase / M3 行为 |
 | --- | --- | --- | --- |
-| 1 | `start` | W：双肘弯曲、双手举到肩旁 | `charging`：生成小球，半径 0.22 |
-| 2 | `charge` | T：双臂向两侧平举，与肩同高 | `expanded`：球变大，半径 0.65 |
-| 3 | `release` | Y：双臂向斜上方举高 | `launched`：球离手飞向月亮，接触后托起月亮 |
+| 1 | `start` | W：双肘弯曲、双手举到肩旁 | `charging`：双手间显现弯月与光罩，光罩半径 0.25 |
+| 2 | `charge` | T：双臂向两侧平举，与肩同高 | `expanded`：弯月与光罩逐渐变大，光罩半径 0.5 |
+| 3 | `release` | Y：双臂向斜上方举高 | `launched`：弯月与光罩一起离手，用 3.2 秒升向天空 |
+
+上述为 story-player 当前弯月演出的表现；`start/charge/release`、配置与结果字段保持兼容。目标位置为 `(0.7, 4.5, -0.5)`，释放时锁定双手位置，飞行不再随手移动。当前集成版用 `python3 tests/moon-smoke.py` 验证升空流程；下方独立 M3 验证记录中的触达动画为历史版本。
 
 半径为场景单位，再乘 `effect.sizeScale`。球的位置跟随模型双手中点，保留手掌前方的显示偏移。阶段 3 触发不等于演出成功；只有月亮真正到达目标位置才发 `completed / moon_restored`。
 
