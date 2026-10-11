@@ -1,0 +1,33 @@
+{
+  "taskId": "088dc749-dabc-410b-aa68-21abf6c858f8",
+  "generator": "Tripo H2.5",
+  "source": "single image",
+  "reference": "approved-reference-v1/front.png",
+  "approvedForIntegration": true,
+  "asset": "public/models/moon-storybook.glb",
+  "bytes": 1832228,
+  "sha256": "1fcda1d64125164d187b295383f9583e0152a0c2477edadbe1c394da13e03b79",
+  "triangles": 20000,
+  "vertices": 11285,
+  "textures": [
+    {
+      "name": "moon-approved-088dc749_basecolor.jpg",
+      "mimeType": "image/jpeg",
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "name": "moon-approved-088dc749_rm.jpg",
+      "mimeType": "image/jpeg",
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "name": "moon-approved-088dc749_normal.png",
+      "mimeType": "image/png",
+      "width": 2048,
+      "height": 2048
+    }
+  ],
+  "runtimeEffects": "Transparent spherical aura, warm emissive material and bloom rendered by Three.js; absent from raw GLB."
+}
