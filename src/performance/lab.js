@@ -2,15 +2,14 @@ import './lab.css';
 import {PerformanceModule} from './module.js';
 import {PoseTracker} from '../motion/pose-tracker.js';
 import {IndexedDBSampleStore,prepareTemplates} from '../motion/templates.js';
-import {configFixture,sampleFixtures} from '../../fixtures/m3/moon-spell.js';
+import {configFixture,sampleFixtures,gestureTips} from '../../fixtures/m3/moon-spell.js';
 const $=id=>document.getElementById(id);
 const tracker=new PoseTracker($('camera')),persistentStore=new IndexedDBSampleStore();
 let samples=structuredClone(sampleFixtures),config=configFixture(),manualIndex=null,loading=false,endingReturnFocus=null,pendingStart=false,startBusy=false,startRequest=0;
 const sampleStore={get:async id=>structuredClone(samples.find(s=>s.sampleId===id))||await persistentStore.get(id)};
 const module=new PerformanceModule({tracker,sampleStore,demoFrameProvider:()=>manualIndex===null?null:samples.find(s=>s.sampleId===config.motion.nodes[manualIndex].sampleId).frames[0]});
 const events=[];
-const labels={idle:'手肘自然下垂，双手靠近胸前',charging:'慢慢拉开双手',expanded:'双手向上托举',launched:'能量正在托起月亮…',complete:'月亮回到天空！'};
-const gestureTips=['手肘自然下垂，双手在胸前相距约一拳','双手向两侧展开，抬到肩膀附近','从展开姿势向上托举，双手举过头顶'];
+const labels={idle:'等待开始动作',charging:'开始成功 · 小球已生成，请做蓄力动作',expanded:'蓄力完成 · 请做释放动作',launched:'已释放 · 能量正在托起月亮…',complete:'月亮回到天空！'};
 function motionFeedback(s){
   const live=s.status==='running'&&s.mode==='live',index=s.spell?.sequence??0,node=config.motion.nodes[index];
   const progress=$('motion-progress');progress.hidden=!live||!node;progress.value=0;
@@ -37,7 +36,7 @@ function controls(){
   $('pause').disabled=!running;$('cancel').disabled=!running;
   $('reset').disabled=loading||startBusy||s.status==='empty';
   $('pause').textContent=s.paused?'继续':'暂停';
-  for(const id of ['color','size','import'])$(id).disabled=loading||running||startBusy||pendingStart;
+  for(const id of ['color','size','import','use-fixed'])$(id).disabled=loading||running||startBusy||pendingStart;
   for(const button of document.querySelectorAll('[data-pose],#auto'))button.disabled=loading||startBusy||pendingStart||(running&&s.mode==='live');
   motionFeedback(s);
 }
@@ -56,7 +55,11 @@ async function connectCamera(){
 }
 
 async function load(){
-  loading=true;controls();$('ending').hidden=true;config={...config,runId:crypto.randomUUID(),effect:{...config.effect,color:$('color').value,sizeScale:Number($('size').value)}};
+  loading=true;controls();$('ending').hidden=true;
+  const fixed=config.motion.nodes.every((node,i)=>node.sampleId===sampleFixtures[i].sampleId);
+  $('gesture-intro').textContent=fixed?'W 形开始，T 形蓄力，Y 形释放。当前使用固定动作联调，后续由 M1 录入替换。':'按本轮录入的动作，依次完成开始、蓄力、释放。';
+  document.querySelectorAll('[data-pose]').forEach((button,i)=>button.textContent=fixed?['开始 · W','蓄力 · T','释放 · Y'][i]:`示范 ${config.motion.nodes[i].label}`);
+  document.querySelectorAll('.step').forEach((el,i)=>{el.querySelector('h3').textContent=config.motion.nodes[i].label;el.querySelector('p').textContent=config.motion.nodes[i].sampleId===sampleFixtures[i].sampleId?gestureTips[i]:'按已录入动作示范完成';});config={...config,runId:crypto.randomUUID(),effect:{...config.effect,color:$('color').value,sizeScale:Number($('size').value)}};
   try{await module.load($('stage'),config);message('守护者准备好了。你可以先看示范，或连接摄像头。');}catch(error){report(error);}finally{loading=false;controls();}
 }
 module.subscribe(event=>{
@@ -122,12 +125,13 @@ $('import').onchange=async()=>{
   const file=$('import').files[0];if(!file)return;
   try{
     if(file.size>10*1024*1024)throw new Error('样本包超过 10 MB，请缩减后重试。');
-    const bundle=JSON.parse(await file.text());prepareTemplates(bundle.config,bundle.samples);
+    const bundle=JSON.parse(await file.text());if(bundle.schemaVersion!==1||!Array.isArray(bundle.samples))throw new Error('样本包需要 schemaVersion: 1 与 samples 数组');prepareTemplates(bundle.config,bundle.samples);
     for(const sample of bundle.samples){const old=await persistentStore.get(sample.sampleId);if(old&&JSON.stringify(old)!==JSON.stringify(sample))throw new Error('样本 ID 已存在且内容不同，请使用新 sampleId。');if(!old)await persistentStore.put(sample);}
     config=bundle.config;samples=bundle.samples;$('color').value=config.effect.color;$('size').value=config.effect.sizeScale;
     localStorage.setItem('m3-last-config',JSON.stringify(config));$('sample-status').textContent=`已载入 ${file.name}：作品 ${config.spellRef.spellId} / 版本 ${config.spellRef.revision}。`;await load();
   }catch(error){report(error);}finally{$('import').value='';}
 };
+$('use-fixed').onclick=async()=>{cancelStart();manualIndex=null;config=configFixture();samples=structuredClone(sampleFixtures);localStorage.removeItem('m3-last-config');$('sample-status').textContent='当前使用固定 W → T → Y 联调样例；已导入样本仍保存在本机。';await load();};
 $('export').onclick=()=>{const blob=new Blob([JSON.stringify({schemaVersion:1,config,samples},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='m3-sample-bundle.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 let previousUpdate=0,uiRaf;
 function update(time){if(time-previousUpdate>120){previousUpdate=time;tryStart();const s=module.snapshot();document.querySelectorAll('.step').forEach((el,i)=>{el.classList.toggle('active',s.spell?.sequence===i&&s.status==='running');el.classList.toggle('done',s.spell?.sequence>i);});$('diagnostics').textContent=JSON.stringify({runId:config.runId,mode:s.mode,status:s.status,phase:s.spell?.phase,tracking:s.tracking,distance:s.spell?.distance,holdMs:s.spell?.dwellMs,result:s.result},null,2);controls();}uiRaf=requestAnimationFrame(update);}

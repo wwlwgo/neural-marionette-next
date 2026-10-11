@@ -1,0 +1,595 @@
+{
+  "schemaVersion": 1,
+  "config": {
+    "schemaVersion": 1,
+    "runId": "example-run-replace-with-uuid",
+    "storyId": "moon-book-v1",
+    "cueId": "moon-help",
+    "spellRef": {
+      "spellId": "m3-fixed-upper-body",
+      "revision": 1
+    },
+    "avatarId": "antler-guardian-v1",
+    "motion": {
+      "coordinateVersion": "body-relative-v1",
+      "nodes": [
+        {
+          "id": "start",
+          "order": 1,
+          "label": "开始",
+          "semantic": "start",
+          "targetPhase": "charging",
+          "sampleId": "m3-fixed-upper-body-1-v1",
+          "featureVersion": "upper-body-v1",
+          "maxDistance": 0.3,
+          "minConfidence": 0.55,
+          "holdMs": 250,
+          "transition": "from-previous"
+        },
+        {
+          "id": "charge",
+          "order": 2,
+          "label": "蓄力",
+          "semantic": "charge",
+          "targetPhase": "expanded",
+          "sampleId": "m3-fixed-upper-body-2-v1",
+          "featureVersion": "upper-body-v1",
+          "maxDistance": 0.3,
+          "minConfidence": 0.55,
+          "holdMs": 250,
+          "transition": "from-previous"
+        },
+        {
+          "id": "release",
+          "order": 3,
+          "label": "释放",
+          "semantic": "release",
+          "targetPhase": "launched",
+          "sampleId": "m3-fixed-upper-body-3-v1",
+          "featureVersion": "upper-body-v1",
+          "maxDistance": 0.3,
+          "minConfidence": 0.55,
+          "holdMs": 250,
+          "transition": "from-previous",
+          "minUpwardDelta": 0.35
+        }
+      ]
+    },
+    "effect": {
+      "effectId": "energy-orb-v1",
+      "color": "#9be8ef",
+      "sizeScale": 1
+    },
+    "target": {
+      "id": "moon",
+      "expectedOutcome": "moon_restored"
+    }
+  },
+  "samples": [
+    {
+      "schemaVersion": 1,
+      "sampleId": "m3-fixed-upper-body-1-v1",
+      "coordinateVersion": "body-relative-v1",
+      "featureVersion": "upper-body-v1",
+      "frames": [
+        {
+          "timestampMs": 0,
+          "joints": {
+            "leftShoulder": {
+              "position": [
+                0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "leftElbow": {
+              "position": [
+                1.05,
+                -0.65,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "leftWrist": {
+              "position": [
+                1.05,
+                0.15,
+                0.15
+              ],
+              "confidence": 1
+            },
+            "rightShoulder": {
+              "position": [
+                -0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "rightElbow": {
+              "position": [
+                -1.05,
+                -0.65,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightWrist": {
+              "position": [
+                -1.05,
+                0.15,
+                0.15
+              ],
+              "confidence": 1
+            }
+          },
+          "tracking": "valid"
+        },
+        {
+          "timestampMs": 100,
+          "joints": {
+            "leftShoulder": {
+              "position": [
+                0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "leftElbow": {
+              "position": [
+                1.05,
+                -0.65,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "leftWrist": {
+              "position": [
+                1.05,
+                0.15,
+                0.15
+              ],
+              "confidence": 1
+            },
+            "rightShoulder": {
+              "position": [
+                -0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "rightElbow": {
+              "position": [
+                -1.05,
+                -0.65,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightWrist": {
+              "position": [
+                -1.05,
+                0.15,
+                0.15
+              ],
+              "confidence": 1
+            }
+          },
+          "tracking": "valid"
+        },
+        {
+          "timestampMs": 200,
+          "joints": {
+            "leftShoulder": {
+              "position": [
+                0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "leftElbow": {
+              "position": [
+                1.05,
+                -0.65,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "leftWrist": {
+              "position": [
+                1.05,
+                0.15,
+                0.15
+              ],
+              "confidence": 1
+            },
+            "rightShoulder": {
+              "position": [
+                -0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "rightElbow": {
+              "position": [
+                -1.05,
+                -0.65,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightWrist": {
+              "position": [
+                -1.05,
+                0.15,
+                0.15
+              ],
+              "confidence": 1
+            }
+          },
+          "tracking": "valid"
+        }
+      ],
+      "templateFrameIndices": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "sampleId": "m3-fixed-upper-body-2-v1",
+      "coordinateVersion": "body-relative-v1",
+      "featureVersion": "upper-body-v1",
+      "frames": [
+        {
+          "timestampMs": 0,
+          "joints": {
+            "leftShoulder": {
+              "position": [
+                0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "leftElbow": {
+              "position": [
+                1.3,
+                0,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "leftWrist": {
+              "position": [
+                2.05,
+                0,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightShoulder": {
+              "position": [
+                -0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "rightElbow": {
+              "position": [
+                -1.3,
+                0,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightWrist": {
+              "position": [
+                -2.05,
+                0,
+                0.1
+              ],
+              "confidence": 1
+            }
+          },
+          "tracking": "valid"
+        },
+        {
+          "timestampMs": 100,
+          "joints": {
+            "leftShoulder": {
+              "position": [
+                0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "leftElbow": {
+              "position": [
+                1.3,
+                0,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "leftWrist": {
+              "position": [
+                2.05,
+                0,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightShoulder": {
+              "position": [
+                -0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "rightElbow": {
+              "position": [
+                -1.3,
+                0,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightWrist": {
+              "position": [
+                -2.05,
+                0,
+                0.1
+              ],
+              "confidence": 1
+            }
+          },
+          "tracking": "valid"
+        },
+        {
+          "timestampMs": 200,
+          "joints": {
+            "leftShoulder": {
+              "position": [
+                0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "leftElbow": {
+              "position": [
+                1.3,
+                0,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "leftWrist": {
+              "position": [
+                2.05,
+                0,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightShoulder": {
+              "position": [
+                -0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "rightElbow": {
+              "position": [
+                -1.3,
+                0,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightWrist": {
+              "position": [
+                -2.05,
+                0,
+                0.1
+              ],
+              "confidence": 1
+            }
+          },
+          "tracking": "valid"
+        }
+      ],
+      "templateFrameIndices": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "sampleId": "m3-fixed-upper-body-3-v1",
+      "coordinateVersion": "body-relative-v1",
+      "featureVersion": "upper-body-v1",
+      "frames": [
+        {
+          "timestampMs": 0,
+          "joints": {
+            "leftShoulder": {
+              "position": [
+                0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "leftElbow": {
+              "position": [
+                1,
+                0.7,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "leftWrist": {
+              "position": [
+                1.45,
+                1.35,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightShoulder": {
+              "position": [
+                -0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "rightElbow": {
+              "position": [
+                -1,
+                0.7,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightWrist": {
+              "position": [
+                -1.45,
+                1.35,
+                0.1
+              ],
+              "confidence": 1
+            }
+          },
+          "tracking": "valid"
+        },
+        {
+          "timestampMs": 100,
+          "joints": {
+            "leftShoulder": {
+              "position": [
+                0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "leftElbow": {
+              "position": [
+                1,
+                0.7,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "leftWrist": {
+              "position": [
+                1.45,
+                1.35,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightShoulder": {
+              "position": [
+                -0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "rightElbow": {
+              "position": [
+                -1,
+                0.7,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightWrist": {
+              "position": [
+                -1.45,
+                1.35,
+                0.1
+              ],
+              "confidence": 1
+            }
+          },
+          "tracking": "valid"
+        },
+        {
+          "timestampMs": 200,
+          "joints": {
+            "leftShoulder": {
+              "position": [
+                0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "leftElbow": {
+              "position": [
+                1,
+                0.7,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "leftWrist": {
+              "position": [
+                1.45,
+                1.35,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightShoulder": {
+              "position": [
+                -0.5,
+                0,
+                0
+              ],
+              "confidence": 1
+            },
+            "rightElbow": {
+              "position": [
+                -1,
+                0.7,
+                0.1
+              ],
+              "confidence": 1
+            },
+            "rightWrist": {
+              "position": [
+                -1.45,
+                1.35,
+                0.1
+              ],
+              "confidence": 1
+            }
+          },
+          "tracking": "valid"
+        }
+      ],
+      "templateFrameIndices": [
+        0,
+        1,
+        2
+      ]
+    }
+  ]
+}

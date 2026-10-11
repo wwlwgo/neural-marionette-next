@@ -1,8 +1,8 @@
-import {validFrame,wristHeight,wristGap} from './pose-frame.js';
+import {validFrame,wristHeight} from './pose-frame.js';
 export const COORDINATE_VERSION='body-relative-v1';
 export const FEATURE_VERSION='upper-body-v1';
 const phases=['charging','expanded','launched'];
-const semantics=['gather','spread','lift'];
+const semantics=[['start','gather'],['charge','spread'],['release','lift']];
 const finite=Number.isFinite;
 export function features(frame){
   if(!validFrame(frame,0))return null;
@@ -17,10 +17,10 @@ export function validateConfig(config){
   const nodes=config.motion?.nodes;
   if(config.motion?.coordinateVersion!==COORDINATE_VERSION||!Array.isArray(nodes)||nodes.length!==3||new Set(nodes.map(n=>n.id)).size!==3)throw new Error('需要三个唯一的动作节点');
   nodes.forEach((node,i)=>{
-    if(!text(node.id)||!text(node.sampleId)||node.order!==i+1||node.targetPhase!==phases[i]||node.semantic!==semantics[i]||node.transition!=='from-previous'||node.featureVersion!==FEATURE_VERSION)throw new Error('动作顺序或模板版本无效');
+    if(!text(node.id)||!text(node.sampleId)||node.order!==i+1||node.targetPhase!==phases[i]||!semantics[i].includes(node.semantic)||node.transition!=='from-previous'||node.featureVersion!==FEATURE_VERSION)throw new Error('动作顺序或模板版本无效');
     if(!finite(node.maxDistance)||node.maxDistance<=0||node.maxDistance>1||!finite(node.minConfidence)||node.minConfidence<.5||node.minConfidence>1||!finite(node.holdMs)||node.holdMs<100||node.holdMs>5000)throw new Error('动作阈值无效');
   });
-  if(!finite(nodes[2].minUpwardDelta)||nodes[2].minUpwardDelta<=0)throw new Error('第三动作缺少上推距离');
+  if(nodes[2].minUpwardDelta!==undefined&&(!finite(nodes[2].minUpwardDelta)||nodes[2].minUpwardDelta<=0))throw new Error('上推距离必须为正数');
   return config;
 }
 export function prepareTemplates(config,samples){
@@ -39,7 +39,7 @@ export function prepareTemplates(config,samples){
     if(separation<.12)throw new Error('三个模板太相似，请重录');
   }
   const heights=templates.map(t=>t.frames.reduce((sum,f)=>sum+wristHeight(f),0)/t.frames.length);
-  if(heights[2]-heights[1]<config.motion.nodes[2].minUpwardDelta)throw new Error('第三模板没有足够上推变化');
+  if(config.motion.nodes[2].minUpwardDelta!==undefined&&heights[2]-heights[1]<config.motion.nodes[2].minUpwardDelta)throw new Error('第三模板没有足够上推变化');
   return templates;
 }
 
@@ -59,12 +59,12 @@ export class TemplateSequence {
     const f=features(frame),distances=this.templates.map(t=>Math.min(...t.features.map(template=>featureDistance(f,template))));
     this.distance=distances[this.index];
     if(this.index===2)this.upwardBaseline=Math.min(this.upwardBaseline??Infinity,wristHeight(frame));
-    const upward=this.index!==2||wristHeight(frame)-this.upwardBaseline>=node.minUpwardDelta;
+    const upward=this.index!==2||node.minUpwardDelta===undefined||wristHeight(frame)-this.upwardBaseline>=node.minUpwardDelta;
     const match=this.distance<=node.maxDistance&&this.distance<=Math.min(...distances)+1e-6&&upward;
     this.dwell=match?this.dwell+elapsed:0;
-    if(this.index>0)this.radius=Math.max(.18,Math.min(.78,.18+(wristGap(frame)-.4)*.22));
     if(this.dwell<node.holdMs)return null;
     this.completed.push(node.id);this.phase=node.targetPhase;this.index++;this.dwell=0;
+    this.radius=this.index===1?.22:.65; // Effect size follows the stage meaning, not the recorded wrist gap.
     if(this.index===2)this.upwardBaseline=wristHeight(frame);
     return {phase:this.phase,nodeId:node.id};
   }

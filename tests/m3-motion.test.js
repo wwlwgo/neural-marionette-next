@@ -14,9 +14,9 @@ function bodyFrame(name,t){
   for(const [i,x,y,z] of bodyPoses[name])world[i]={x,y,z,visibility:1};
   return normalizePose(world,world,t);
 }
-test('relaxed elbows and hands at chest height summon the orb, then spread and lift launch it',()=>{
+test('fixed W/T/Y upper-body poses run start, charge and release in order',()=>{
   const seq=sequence();
-  for(const [name,start,phase] of [['rest',0,'idle'],['lift',500,'idle'],['gather',1000,'charging'],['spread',1500,'expanded'],['lift',2000,'launched']]){
+  for(const [name,start,phase] of [['rest',0,'idle'],['release',500,'idle'],['start',1000,'charging'],['charge',1500,'expanded'],['release',2000,'launched']]){
     for(let i=0;i<8;i++)seq.update(bodyFrame(name,start+i*50));
     assert.equal(seq.phase,phase,name);
   }
@@ -41,7 +41,7 @@ test('samples drive ordered matching; early raised arms never skip to release',(
   hold(seq,2,1000);assert.equal(seq.phase,'charging');
   hold(seq,1,1500);assert.equal(seq.phase,'expanded');
   hold(seq,2,1900);assert.equal(seq.phase,'launched');
-  hold(seq,2,2500);assert.deepEqual(seq.completed,['gather','spread','lift']);
+  hold(seq,2,2500);assert.deepEqual(seq.completed,['start','charge','release']);
 });
 test('tracking loss and repeated timestamps do not accumulate dwell; completed nodes persist',()=>{
   const seq=sequence();seq.update(frame(0,0));for(let i=0;i<50;i++)seq.update(frame(0,0));assert.equal(seq.dwell,0);
@@ -68,4 +68,43 @@ test('a different recorded template changes recognition rather than using fixed 
   hold(seq,0,0);assert.equal(seq.phase,'idle');
   for(let i=0;i<8;i++)seq.update({...structuredClone(samples[0].frames[0]),timestampMs:500+i*50});
   assert.equal(seq.phase,'charging');
+});
+
+test('M1 can bind a non-upward recorded pose to release and effect size follows meaning',()=>{
+  const config=configFixture(),samples=structuredClone(sampleFixtures);
+  delete config.motion.nodes[2].minUpwardDelta;
+  for(const f of samples[2].frames)for(const [side,sign] of [['left',1],['right',-1]]){
+    f.joints[side+'Elbow'].position=[sign*.9,-.65,.1];
+    f.joints[side+'Wrist'].position=[sign*.12,-.45,.2];
+  }
+  const seq=new TemplateSequence(prepareTemplates(config,samples));
+  hold(seq,0,0);assert.equal(seq.radius,.22);
+  hold(seq,1,500);assert.equal(seq.radius,.65);
+  for(let t=1000;t<1400;t+=50)seq.update({...samples[2].frames[0],timestampMs:t});
+  assert.equal(seq.phase,'launched');assert.equal(seq.radius,.65);
+});
+
+test('small coordinate noise remains recognizable; low confidence and one-arm poses do not start',()=>{
+  const seq=sequence();
+  for(let t=0;t<400;t+=50){const f=bodyFrame('start',t);f.joints.leftWrist.confidence=.2;seq.update(f);}
+  assert.equal(seq.phase,'idle');
+  for(let t=500;t<900;t+=50){const f=bodyFrame('start',t),rest=bodyFrame('rest',t);f.joints.rightElbow=rest.joints.rightElbow;f.joints.rightWrist=rest.joints.rightWrist;seq.update(f);}
+  assert.equal(seq.phase,'idle');
+  for(let t=1000;t<1400;t+=50){const f=bodyFrame('start',t);for(const j of Object.values(f.joints))j.position=j.position.map((v,i)=>v+.05*Math.sin(t+i));seq.update(f);}
+  assert.equal(seq.phase,'charging');
+});
+
+test('legacy meanings remain readable while wrong order and invalid optional constraints fail',()=>{
+  const config=configFixture();config.motion.nodes.forEach((n,i)=>n.semantic=['gather','spread','lift'][i]);
+  assert.equal(prepareTemplates(config,sampleFixtures).length,3);
+  config.motion.nodes[0].semantic='release';assert.throws(()=>prepareTemplates(config,sampleFixtures),/顺序/);
+  config.motion.nodes[0].semantic='start';config.motion.nodes[2].minUpwardDelta=-1;assert.throws(()=>prepareTemplates(config,sampleFixtures),/上推/);
+});
+
+test('published M1 handoff JSON matches the runnable fixed-pose fixture',()=>{
+  const bundle=JSON.parse(readFileSync(new URL('../fixtures/m3/fixed-upper-body.bundle.json',import.meta.url)));
+  assert.equal(bundle.schemaVersion,1);
+  assert.deepEqual(bundle.config,configFixture('example-run-replace-with-uuid'));
+  assert.deepEqual(bundle.samples,sampleFixtures);
+  assert.equal(prepareTemplates(bundle.config,bundle.samples).length,3);
 });

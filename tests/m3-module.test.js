@@ -20,7 +20,7 @@ test('live requires stable tracking and real samples; three nodes alone do not c
   assert.equal(h.module.snapshot().spell.phase,'launched');assert.equal(h.events.filter(e=>e.type==='result').length,0);
   h.stages[0].outcome='wrong';h.advance();assert.equal(h.module.result,null);
   h.stages[0].outcome='moon_restored';h.advance();h.advance();
-  const results=h.events.filter(e=>e.type==='result');assert.equal(results.length,1);assert.equal(results[0].result.mode,'live');assert.deepEqual(results[0].result.completedNodeIds,['gather','spread','lift']);
+  const results=h.events.filter(e=>e.type==='result');assert.equal(results.length,1);assert.equal(results[0].result.mode,'live');assert.deepEqual(results[0].result.completedNodeIds,['start','charge','release']);
 });
 test('pause clears pending dwell; resume ignores an old packet and cancel emits one result',async()=>{
   const h=await loaded();await h.module.start('live');for(let i=0;i<4;i++)h.send(0);

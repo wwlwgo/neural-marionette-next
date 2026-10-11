@@ -1,6 +1,6 @@
 # 三模块 MVP 接口协议
 
-v0.1 · 2026-10-11。以下是待实现的契约，不表示现有代码已经暴露这些 API。范围见 [产品需求](PRODUCT_SPEC.md)，归属见 [双人计划](PROJECT_STAGES.md)。首版同一前端进程使用组件方法和事件，绘本生成调用服务端；不把每个模块拆成远端服务。
+v0.2 · 2026-10-11。M3 已实现本文的演出接口，M1/M2 为独立开发契约；M1 → M3 的可运行样例与接入步骤见 [交接协议](M1_M3_HANDOFF.md)。范围见 [产品需求](PRODUCT_SPEC.md)，归属见 [双人计划](PROJECT_STAGES.md)。首版同一前端进程使用组件方法和事件，绘本生成调用服务端；不把每个模块拆成远端服务。
 
 ## 1. 数据约定
 
@@ -20,15 +20,15 @@ type MotionNode = {
   id: string;
   order: NodeOrder;
   label: string;
-  semantic: 'gather' | 'spread' | 'lift';
+  semantic: 'start' | 'charge' | 'release'; // 开始、蓄力、释放；不限定具体姿势
   targetPhase: 'charging' | 'expanded' | 'launched';
   sampleId: string;             // IndexedDB稳定键，含轨迹与稳定模板帧
   featureVersion: 'upper-body-v1';
   maxDistance: number;          // 匹配距离阈值，越小越相似
-  minConfidence: number;        // 必需关节的置信度门槛，0..1
+  minConfidence: number;        // 必需关节门槛，支持0.5..1
   holdMs: number;
   transition: 'from-previous';  // 必须先完成上一个节点；节点1从idle开始
-  minUpwardDelta?: number;      // 节点3必填，单位为肩宽
+  minUpwardDelta?: number;      // 节点3可选；只有要求向上移动时设置，单位为肩宽
 };
 
 type SpellDraft = {
@@ -58,7 +58,7 @@ type SpellDraft = {
 };
 ```
 
-校验要求：三个节点的 order 为 1、2、3且 ID 唯一；阶段依次为 charging、expanded、launched；样本和特征版本可读取；阈值有效；三个模板可区分；第三节点有上推变化；排练通过后才能 confirmed。颜色和 sizeScale 落在 `energy-orb-v1` 支持范围。元信息存储由 B 管理，样本存储和排练由 A 提供；确认是控制器在两部分校验后执行的一次操作。
+校验要求：三个节点的 order 为 1、2、3且 ID 唯一；阶段依次为 charging、expanded、launched；样本和特征版本可读取；阈值有效；三个模板可区分；若配置 minUpwardDelta，第三节点须有对应上推变化；排练通过后才能 confirmed。颜色和 sizeScale 落在 `energy-orb-v1` 支持范围。元信息存储由 B 管理，样本存储和排练由 A 提供；确认是控制器在两部分校验后执行的一次操作。
 
 ### 本地样本与实时姿态：A 内部共享
 
@@ -93,7 +93,7 @@ type StoryRequest = {
   spellRef: SpellRef;
   hero: SpellDraft['hero'];
   spell: SpellDraft['spell'];
-  stageMeanings: ['蓄力', '展开', '释放'];
+  stageMeanings: ['开始', '蓄力', '释放'];
   themeId: 'save-the-moon';
   bodyPageCount: number;       // 5..10，默认5，包含邀请页
   language: 'zh-CN';
@@ -241,7 +241,7 @@ pause 停止释放前节点推进和保持计时；已释放的场景收尾允�
 
 ## 5. 联调样例和错误边界
 
-双方实现时共用 fixture：`moon-spell-v1`、revision 1，三节点 `gather/spread/lift`，effect `energy-orb-v1`，story `moon-book-v1`，cue `moon-help`，outcome `moon_restored`。A 补真实动作样本，B 补5页正文和1页结局的素材引用。fixture 是开发任务，本文没有宣称文件已创建。
+当前可运行 fixture 为 `m3-fixed-upper-body`、revision 1，三节点 `start/charge/release`，对应 W/T/Y 上半身固定动作。完整 JSON 位于 `fixtures/m3/fixed-upper-body.bundle.json`，可在 m3.html 中导入。effect 为 `energy-orb-v1`，story 为 `moon-book-v1`，cue 为 `moon-help`，outcome 为 `moon_restored`。固定动作只用于替代 M1 联调，不写死在 M3 中。M1 录入后交付自己的新 sampleId 和作品版本，B 补绘本资源。
 
 | 失败 | 谁发现/处理 | 行为 |
 | --- | --- | --- |
@@ -263,3 +263,5 @@ pause 停止释放前节点推进和保持计时；已释放的场景收尾允�
 `src/performance/module.js` 已提供 `PerformanceModule`。构造时注入 `{tracker, sampleStore}`；共享摄像头由应用创建并显式 connect。`load` 不开启相机，`ready` 仅表示样本/舞台就绪；`start(live)` 仍检查稳定追踪。M1/M2 的完整实现状态不由此改变。
 
 样本读取接口为 `sampleStore.get(sampleId)`；本地样本不可覆盖，重录创建新 ID。Body-relative 模板与镜像显示分离。`energy-orb-v1` 的 sizeScale 支持 0.5～1.5。M3 独立试演入口、共享追踪服务、失败语义及真人待验收项见 [M3 实现与联调](M3_IMPLEMENTATION.md)。
+
+向后兼容：已有 schemaVersion 1 的节点语义 `gather/spread/lift` 仍分别映射到开始/蓄力/释放；新 M1 使用 `start/charge/release`。内部阶段 `charging/expanded/launched` 保留，避免已有控制器和场景事件失效。

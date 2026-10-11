@@ -2,3 +2,5 @@
 
 .ending{padding-top:38px}.ending-close{position:absolute;top:5px;right:5px;width:36px;height:36px;padding:0;border:0;font-size:26px;line-height:1;color:#526d9d}.ending-again{margin-top:20px}
 #motion-feedback{font-size:12px;line-height:1.7;color:#385998;margin:12px 0 6px;grid-column:1/-1}#motion-progress{width:100%;height:8px;accent-color:#385998;grid-column:1/-1}
+
+.intro>p{max-width:390px}

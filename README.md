@@ -62,3 +62,5 @@ npm run build
 - [资源来源与许可记录](assets/licenses/README.md)
 
 历史文档描述原项目；新项目的目录、端口与协作约定以 README 和 HANDOFF 为准。原始参考需求不是本项目已经承诺或实现的功能清单。
+
+M3 当前默认用固定 W/T/Y 上半身动作分别触发开始、蓄力、释放，供 M1 独立开发期间联调。正式 M1 的动作可通过样本配置替换。见 [M1 → M3 交接协议](docs/M1_M3_HANDOFF.md) 与 [完整 JSON 样例](fixtures/m3/fixed-upper-body.bundle.json)。

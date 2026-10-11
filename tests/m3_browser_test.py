@@ -4,6 +4,12 @@ from playwright.sync_api import sync_playwright
 BASE=os.environ.get('NM_TEST_URL','http://127.0.0.1:5180').rstrip('/')
 OUT=pathlib.Path(tempfile.gettempdir())/'neural-marionette-m3-tests'
 OUT.mkdir(parents=True,exist_ok=True)
+def wait_completed(page):
+    try:
+        page.wait_for_function("__M3_LAB__.snapshot().result?.status==='completed'",timeout=30000)
+    except Exception:
+        print(json.dumps(page.evaluate('''()=>({snapshot:__M3_LAB__.snapshot(),events:__M3_LAB__.events,visibility:document.visibilityState,demoElapsed:__M3_LAB__.module.demoElapsed})'''),ensure_ascii=False))
+        raise
 with sync_playwright() as p:
     browser=p.chromium.launch(headless=True,executable_path=os.environ.get('NM_TEST_CHROME'),args=(['--use-angle=metal'] if sys.platform=='darwin' else [])+['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'])
     page=browser.new_page(viewport={'width':1440,'height':1120})
@@ -36,7 +42,7 @@ with sync_playwright() as p:
         assert not page.evaluate('__M3_LAB__.snapshot().stage.effects.restored')
         assert page.locator('#stage canvas').count()==1
         page.locator('#demo').click()
-        page.wait_for_function("__M3_LAB__.snapshot().result?.status==='completed'",timeout=20000)
+        wait_completed(page)
     assert len(set(run_ids))==3
     assert page.evaluate("__M3_LAB__.events.filter(e=>e.type==='result').length")==3
     # Pause and cancel before release.
@@ -48,12 +54,29 @@ with sync_playwright() as p:
     page.locator('#pause').click();page.locator('#cancel').click()
     assert page.evaluate('__M3_LAB__.snapshot().result.status')=='cancelled'
     # Persist external M1-compatible bundle; reload resolves immutable sample references.
-    bundle=page.evaluate("async()=>{const f=await import('/fixtures/m3/moon-spell.js');const config=f.configFixture('import');config.effect.color='#ff44bb';return {config,samples:f.sampleFixtures};}")
+    bundle=page.evaluate('''async()=>{
+      const f=await import('/fixtures/m3/moon-spell.js'),config=f.configFixture('import'),samples=structuredClone(f.sampleFixtures);
+      config.effect.color='#ff44bb';config.spellRef={spellId:'m1-independent-recording',revision:1};
+      config.motion.nodes.forEach((node,i)=>{node.sampleId=samples[i].sampleId='m1-recorded-'+i;node.label=['我的开始','我的蓄力','胸前释放'][i];});
+      delete config.motion.nodes[2].minUpwardDelta;
+      for(const frame of samples[2].frames)for(const [side,sign]of [['left',1],['right',-1]]){
+        frame.joints[side+'Elbow'].position=[sign*.9,-.65,.1];frame.joints[side+'Wrist'].position=[sign*.12,-.45,.2];
+      }
+      return {schemaVersion:1,config,samples};
+    }''')
     page.locator('summary').click()
     page.locator('#import').set_input_files({'name':'m1-fixture.json','mimeType':'application/json','buffer':json.dumps(bundle).encode()})
     page.wait_for_function("__M3_LAB__.snapshot().status==='ready'&&__M3_LAB__.snapshot().config.effect.color==='#ff44bb'")
     page.reload();page.wait_for_load_state('networkidle');page.wait_for_function("__M3_LAB__.snapshot().status==='ready'")
     assert page.evaluate('__M3_LAB__.snapshot().config.effect.color')=='#ff44bb'
+    assert '本轮录入' in page.locator('#gesture-intro').inner_text()
+    assert page.locator('.step h3').all_text_contents()==['我的开始','我的蓄力','胸前释放']
+    page.locator('#demo').click();wait_completed(page)
+    assert page.evaluate('__M3_LAB__.snapshot().result.spellRef.spellId')=='m1-independent-recording'
+    page.locator('#ending-close').click();page.locator('summary').click();page.locator('#use-fixed').click()
+    page.wait_for_function("__M3_LAB__.snapshot().status==='ready'&&__M3_LAB__.snapshot().config.spellRef.spellId==='m3-fixed-upper-body'")
+    page.reload();page.wait_for_function("window.__M3_LAB__?.snapshot().status==='ready'")
+    assert page.evaluate('__M3_LAB__.snapshot().config.spellRef.spellId')=='m3-fixed-upper-body'
     # Real body worker: all assets local, real WASM inference over a blank frame.
     worker_result=page.evaluate('''async()=>new Promise((resolve,reject)=>{
       const worker=new Worker('/pose-tracker.worker.js'),timer=setTimeout(()=>{worker.terminate();reject(new Error('worker timeout'));},45000);
@@ -79,7 +102,7 @@ with sync_playwright() as p:
           let image,world;if(window.testWorld){world=window.testWorld;image=world.map(p=>({x:.5+p.x*.375,y:.65+p.y*.5,z:p.z,visibility:p.visibility}));}
           else if(frame){image=Array.from({length:33},()=>({x:.5,y:.7,z:0,visibility:0}));world=Array.from({length:33},()=>({x:0,y:0,z:0,visibility:0}));
             const indices={leftShoulder:11,rightShoulder:12,leftElbow:13,rightElbow:14,leftWrist:15,rightWrist:16,leftHip:23,rightHip:24};
-            for(const [name,i]of Object.entries(indices)){const joint=frame.joints[name],v=joint.position;world[i]={x:v[0]*.4,y:-v[1]*.4-.5,z:-v[2]*.4,visibility:joint.confidence};image[i]={x:.5+v[0]*.15,y:.4-v[1]*.15,z:-v[2]*.15,visibility:joint.confidence};}}
+            for(const [name,i]of Object.entries(indices)){const joint=frame.joints[name];if(!joint)continue;const v=joint.position;world[i]={x:v[0]*.4,y:-v[1]*.4-.5,z:-v[2]*.4,visibility:joint.confidence};image[i]={x:.5+v[0]*.15,y:.4-v[1]*.15,z:-v[2]*.15,visibility:joint.confidence};}}
           queueMicrotask(()=>this.onmessage?.({data:{type:'pose',timestamp:data.timestamp,image,world,ms:0}}));}}
       terminate(){this.onmessage=null;}
     };''')
@@ -103,7 +126,7 @@ with sync_playwright() as p:
     assert live.evaluate('__M3_LAB__.snapshot().status')=='ready'
     live.wait_for_function("Math.abs(__M3_LAB__.snapshot().stage.points.lw[1]-.94)>.1")
     # Demo -> dismiss -> live is a fresh run, with no hidden Reset prerequisite.
-    live.locator('#demo').click();live.wait_for_function("__M3_LAB__.snapshot().result?.status==='completed'",timeout=20000)
+    live.locator('#demo').click();wait_completed(live)
     demo_run=live.evaluate('__M3_LAB__.snapshot().config.runId')
     live.locator('#ending-close').click()
     assert live.locator('#start').is_enabled()
@@ -114,22 +137,25 @@ with sync_playwright() as p:
     live.wait_for_function("__M3_LAB__.snapshot().status==='running'")
     live.wait_for_timeout(500)
     assert live.evaluate('__M3_LAB__.snapshot().spell.phase')=='idle'
-    assert '手肘自然下垂' in live.locator('#motion-feedback').inner_text()
+    assert 'W 形' in live.locator('#motion-feedback').inner_text()
     assert live.locator('#motion-progress').is_visible()
-    live.evaluate("setBodyPose('gather')")
+    live.evaluate("setBodyPose('start')")
     live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='charging'")
-    live.screenshot(path=str(OUT/'m3-natural-gather.png'),full_page=True)
+    live.screenshot(path=str(OUT/'m3-fixed-start.png'),full_page=True)
+    assert abs(live.evaluate('__M3_LAB__.snapshot().stage.effects.radius')-.22)<.001
     assert live.evaluate('__M3_LAB__.snapshot().config.runId')!=demo_run
     assert live.evaluate('__M3_LAB__.snapshot().mode')=='live'
     live.evaluate('setBodyPose(null)');live.wait_for_function("__M3_LAB__.snapshot().tracking==='lost'")
     assert live.evaluate('__M3_LAB__.snapshot().spell.phase')=='charging'
-    live.evaluate("setBodyPose('spread')");live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='expanded'")
-    live.evaluate("setBodyPose('lift')");live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='launched'")
+    live.evaluate("setBodyPose('charge')");live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='expanded'")
+    assert abs(live.evaluate('__M3_LAB__.snapshot().stage.effects.radius')-.65)<.001
+    live.evaluate("setBodyPose('release')");live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='launched'")
     live.evaluate('setBodyPose(null)');live.wait_for_function("__M3_LAB__.snapshot().result?.status==='completed'")
     result=live.evaluate('__M3_LAB__.snapshot().result')
+    assert result['completedNodeIds']==['start','charge','release']
     assert result['mode']=='live' # Synthetic input to live path, NOT a real-human acceptance.
     live.locator('#connect').click();assert not live.evaluate('__M3_LAB__.tracker.connected')
     live.evaluate('__M3_LAB__.module.dispose()');assert live.locator('#stage canvas').count()==0
     assert not errors,errors
-    report={'realGLB':'passed','sequentialButtons':'passed','threeRounds':'passed','pauseCancelReset':'passed','M1BundlePersistence':'passed','realWorkerBlankFrame':worker_result,'syntheticCameraLivePath':'passed (not human acceptance)','startAndDemoToLive':'passed','mobile':'passed','pageErrors':errors,'humanCamera':'NOT TESTED','evidence':str(OUT)}
+    report={'realGLB':'passed','sequentialButtons':'passed','threeRounds':'passed','pauseCancelReset':'passed','M1BundlePersistence':'passed','M1CustomReleaseAndRestoreFixed':'passed','realWorkerBlankFrame':worker_result,'syntheticCameraLivePath':'passed (not human acceptance)','startAndDemoToLive':'passed','mobile':'passed','pageErrors':errors,'humanCamera':'NOT TESTED','evidence':str(OUT)}
     (OUT/'results.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,ensure_ascii=False));browser.close()
