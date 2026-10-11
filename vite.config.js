@@ -3,5 +3,5 @@ export default defineConfig({
   server:{host:'127.0.0.1'},
   preview:{host:'127.0.0.1'},
   // Preserve previous outputs rather than performing destructive cleanup.
-  build:{emptyOutDir:false,rollupOptions:{output:{manualChunks:{three:['three']}}}}
+  build:{emptyOutDir:false,rollupOptions:{input:{main:'index.html',m3:'m3.html'},output:{manualChunks:{three:['three']}}}}
 });

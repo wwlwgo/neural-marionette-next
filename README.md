@@ -44,6 +44,10 @@ npm run build
 
 当前基线有 65 项 Node 单元测试。GitHub Actions 已配置对 main 推送及 PR 运行依赖安装、单元测试和构建。浏览器与真人验收步骤见 [交接手册](HANDOFF.md)。
 
+## M3 实时施法试演
+
+运行 `npm run dev` 后打开 [M3 独立试演页](http://127.0.0.1:5180/m3.html)。支持鹿角机甲身体跟随、三节点模板施法、能量球托月亮，以及演出组件接口；默认使用合成开发模板，真人效果待试演。接入说明见 [M3 实现与联调](docs/M3_IMPLEMENTATION.md)。原首页继续提供 V2 手部控制。
+
 ## 文档
 
 - [儿童互动绘本 MVP 框架与模块接口](docs/PRODUCT_SPEC.md)

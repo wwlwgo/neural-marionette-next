@@ -1,0 +1,56 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {normalizePose} from '../src/motion/pose-frame.js';
+import {prepareTemplates,TemplateSequence} from '../src/motion/templates.js';
+import {configFixture,sampleFixtures} from '../fixtures/m3/moon-spell.js';
+const sequence=()=>new TemplateSequence(prepareTemplates(configFixture(),sampleFixtures));
+const frame=(index,t)=>({...structuredClone(sampleFixtures[index].frames[0]),timestampMs:t});
+function hold(seq,index,start,count=8){for(let i=0;i<count;i++)seq.update(frame(index,start+i*50));}
+
+test('body-relative frames normalize scale and translation; missing shoulder is lost, wrist is partial',()=>{
+  const world=Array.from({length:33},()=>({x:0,y:0,z:0,visibility:1}));
+  Object.assign(world[11],{x:.2,y:-.5});Object.assign(world[12],{x:-.2,y:-.5});
+  Object.assign(world[13],{x:.4,y:-.2});Object.assign(world[14],{x:-.4,y:-.2});
+  Object.assign(world[15],{x:.1,y:-.3});Object.assign(world[16],{x:-.1,y:-.3});
+  const result=normalizePose(world,world,0);
+  const scaled=world.map(p=>({...p,x:p.x*2+4,y:p.y*2+3,z:p.z*2+2}));
+  const other=normalizePose(scaled,scaled,50);
+  for(const name of Object.keys(result.joints))result.joints[name].position.forEach((v,i)=>assert.ok(Math.abs(v-other.joints[name].position[i])<1e-10));
+  assert.deepEqual(result.joints.leftShoulder.position,[.5,0,0]);
+  world[15].visibility=.1;assert.equal(normalizePose(world,world,0).tracking,'partial');
+  world[11].visibility=.1;assert.equal(normalizePose(world,world,0).tracking,'lost');
+});
+test('samples drive ordered matching; early raised arms never skip to release',()=>{
+  const seq=sequence();hold(seq,2,0);assert.equal(seq.phase,'idle');
+  hold(seq,0,500);assert.equal(seq.phase,'charging');
+  hold(seq,2,1000);assert.equal(seq.phase,'charging');
+  hold(seq,1,1500);assert.equal(seq.phase,'expanded');
+  hold(seq,2,1900);assert.equal(seq.phase,'launched');
+  hold(seq,2,2500);assert.deepEqual(seq.completed,['gather','spread','lift']);
+});
+test('tracking loss and repeated timestamps do not accumulate dwell; completed nodes persist',()=>{
+  const seq=sequence();seq.update(frame(0,0));for(let i=0;i<50;i++)seq.update(frame(0,0));assert.equal(seq.dwell,0);
+  seq.update(frame(0,200));seq.update({timestampMs:210,tracking:'lost'});seq.update(frame(0,230));seq.update(frame(0,400));assert.equal(seq.phase,'idle');
+  seq.update(frame(0,500));assert.equal(seq.phase,'charging');seq.interrupt();assert.equal(seq.phase,'charging');
+});
+test('after loss in lift stage, returning already raised cannot release without a fresh upward motion',()=>{
+  const seq=sequence();hold(seq,0,0);hold(seq,1,400);seq.interrupt();hold(seq,2,800);assert.equal(seq.phase,'expanded');
+  seq.update(frame(1,1200)); // baseline remains return height: requires lowering then a new valid baseline after interruption
+  seq.interrupt();seq.update(frame(1,1250));hold(seq,2,1300);assert.equal(seq.phase,'launched');
+});
+test('rejects missing, incompatible, indistinguishable samples and impossible upward template',()=>{
+  assert.throws(()=>prepareTemplates(configFixture(),[]),/样本/);
+  const samples=structuredClone(sampleFixtures);samples[0].featureVersion='wrong';assert.throws(()=>prepareTemplates(configFixture(),samples),/版本/);
+  const same=structuredClone(sampleFixtures);same[1].frames=structuredClone(same[0].frames);assert.throws(()=>prepareTemplates(configFixture(),same),/相似/);
+  const cfg=configFixture();cfg.motion.nodes[2].minUpwardDelta=10;assert.throws(()=>prepareTemplates(cfg,sampleFixtures),/上推/);
+});
+
+test('a different recorded template changes recognition rather than using fixed gather rules',()=>{
+  const config=configFixture(),samples=structuredClone(sampleFixtures);
+  config.motion.nodes[0].maxDistance=.04;
+  for(const f of samples[0].frames)for(const name of ['leftElbow','rightElbow','leftWrist','rightWrist'])f.joints[name].position[1]-=.35;
+  const seq=new TemplateSequence(prepareTemplates(config,samples));
+  hold(seq,0,0);assert.equal(seq.phase,'idle');
+  for(let i=0;i<8;i++)seq.update({...structuredClone(samples[0].frames[0]),timestampMs:500+i*50});
+  assert.equal(seq.phase,'charging');
+});

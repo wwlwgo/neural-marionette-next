@@ -36,3 +36,8 @@ Neon Orbit · 霓光轨道由本项目的 `scripts/compose-music.mjs` 编排与�
 ## V2 鹿角机甲
 
 鹿角机甲由用户提供，来自 Tripo v2.5 生成并经本地 Blender 绑骨。它与上述程序生成的原机器人是不同资源。运行 GLB、原始 GLB、Blender 源文件及 SHA-256 见 `assets/source/manifest.json`。本仓库未为该模型另行声明 MIT、CC0 或其他授权；其来源平台条款与生成账户对应的使用权不由本项目文档替代。
+
+
+## M3 身体识别资源
+
+`public/models/pose_landmarker_lite.task` 复用伙伴在 `codex/energy-avatar` 的提交 `dc467c9` 中提供的 Google MediaPipe Pose Landmarker Lite 模型。字节数和 SHA256 见 `m3-model-manifest.json`。官方模型入口：https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker#models 。使用仓库现有的 Tasks Vision 0.10.32/WASM，本项目未将预训练模型改称原创或 CC0。

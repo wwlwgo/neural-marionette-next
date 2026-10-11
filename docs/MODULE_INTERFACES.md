@@ -256,3 +256,10 @@ pause 停止释放前节点推进和保持计时；已释放的场景收尾允�
 | 新作品生成时旧任务返回 | B | 按作品版本过滤，不覆盖 |
 
 联调优先验证正常链路、跳节点不释放、目标作用后才完成、重复结果只切一次、旧版本忽略、摄像头复用与刷新后资源恢复。规则测试与实际摄像头/图像效果验收分别记录。
+
+
+## 6. M3 首个实现补充
+
+`src/performance/module.js` 已提供 `PerformanceModule`。构造时注入 `{tracker, sampleStore}`；共享摄像头由应用创建并显式 connect。`load` 不开启相机，`ready` 仅表示样本/舞台就绪；`start(live)` 仍检查稳定追踪。M1/M2 的完整实现状态不由此改变。
+
+样本读取接口为 `sampleStore.get(sampleId)`；本地样本不可覆盖，重录创建新 ID。Body-relative 模板与镜像显示分离。`energy-orb-v1` 的 sizeScale 支持 0.5～1.5。M3 独立试演入口、共享追踪服务、失败语义及真人待验收项见 [M3 实现与联调](M3_IMPLEMENTATION.md)。

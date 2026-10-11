@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>接住月亮 · 鹿角守护者</title></head>
+<body>
+  <main class="experience">
+    <header class="masthead"><a href="/" class="brand">鹿角守护者<span>身体施法实验室</span></a><span class="chapter">月亮故事 / 实时演出</span><span id="mode" class="badge">摄像头未开启</span></header>
+    <section class="intro"><div><p class="eyebrow">轮到你，让故事继续</p><h1>把月亮，<em>托回天空。</em></h1></div><p>聚拢双手，慢慢展开，再向上托举。<br>你的动作，就是守护者的力量。</p></section>
+    <div class="workspace">
+      <section class="stage-shell" aria-label="实时演出"><div id="stage"></div><div class="stage-caption"><span id="stage-status">正在唤醒守护者…</span><span>拖动画面可旋转视角</span></div><div id="ending" class="ending" hidden><p>月亮回到天空了</p><h2 id="ending-title">示范完成</h2><span id="ending-detail"></span></div></section>
+      <aside class="guide">
+        <div class="camera-heading"><h2>你的位置</h2><span id="tracking">尚未连接</span></div>
+        <div class="camera"><video id="camera" playsinline muted></video><canvas id="overlay"></canvas><div id="camera-empty"><span>◌</span><p>让双肩、手肘和双手<br>都出现在画面里</p></div></div>
+        <p class="privacy">画面仅在本机处理，不录制、不上传。</p>
+        <button id="connect" class="button secondary">连接摄像头</button>
+        <button id="start" class="button primary" disabled>我准备好了，开始施法</button>
+        <div class="or"><span></span>先看看怎么玩<span></span></div>
+        <button id="demo" class="button secondary" disabled>播放动作示范</button>
+        <p id="message" role="status" aria-live="polite">正在加载角色与动作样本。</p>
+      </aside>
+    </div>
+    <section class="sequence" aria-label="施法步骤">
+      <div class="step" data-index="0"><span class="number">1</span><div><h3>聚拢</h3><p>双手靠近胸前，保持片刻</p></div></div>
+      <div class="step" data-index="1"><span class="number">2</span><div><h3>展开</h3><p>慢慢拉开，让能量球长大</p></div></div>
+      <div class="step" data-index="2"><span class="number">3</span><div><h3>上推</h3><p>双手向上，把力量送给月亮</p></div></div>
+    </section>
+    <div class="toolbar"><p id="hint">先看示范，或连接摄像头亲自试试。</p><div><button id="pause" disabled>暂停</button><button id="cancel" disabled>取消本轮</button><button id="reset" disabled>再来一次</button></div></div>
+    <details class="settings"><summary>试演设置与联调</summary><div class="settings-grid">
+      <label>能量颜色 <input id="color" type="color" value="#9be8ef"></label><label>能量大小 <input id="size" type="range" min="0.5" max="1.5" step="0.1" value="1"></label>
+      <label><input id="mirror" type="checkbox" checked> 镜像预览</label><button id="center">重新居中</button>
+      <label>导入 M1 样本包 <input id="import" type="file" accept="application/json,.json"></label><button id="export">导出当前联调样例</button>
+    </div><p id="sample-status">当前使用开发用合成模板；它们不是孩子录入的数据。支持导入包含 config 与 samples 的 M1 样本包。</p><div class="manual"><span>分步示范（不计为真人完成）</span><button data-pose="0">示范聚拢</button><button data-pose="1">示范展开</button><button data-pose="2">示范上推</button><button id="auto">恢复自动示范</button></div><pre id="diagnostics" aria-label="演出状态"></pre></details>
+    <footer>一位守护者，一颗月亮，和你的三个动作。<span>M3 · 本地试演</span></footer>
+  </main>
+  <script type="module" src="/src/performance/lab.js"></script>
+</body></html>
