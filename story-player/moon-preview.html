@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>月光弯月 · 效果预览</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111a35;color:#f8ebca;font:16px system-ui,sans-serif}header{position:absolute;z-index:1;top:26px;left:32px;pointer-events:none}h1{font-size:24px;font-weight:500;margin:0 0 10px}p{font-size:14px;opacity:.7;margin:0}#stage{width:100vw;height:100dvh;min-height:500px}nav{position:absolute;z-index:2;bottom:28px;left:50%;transform:translateX(-50%);display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:min(95vw,660px)}button,a{border:1px solid #e9cf9455;border-radius:24px;padding:10px 18px;background:#18233ce6;color:#f8ebca;font:inherit;text-decoration:none;cursor:pointer}button:hover,a:hover{background:#344362}#status{position:absolute;right:30px;top:30px;font-size:13px;color:#d1c4a6}
+</style></head><body>
+<header><h1>月光弯月</h1><p>拖动查看角度 · 滚轮缩放</p></header><div id="status">正在载入模型…</div><div id="stage"></div>
+<nav><button id="closeup">月亮特写</button><button id="wide">完整舞台</button><button id="lift">播放托月</button><button id="reset">复位</button><a href="./">进入绘本</a></nav>
+<script type="module">
+import {PerformanceStage} from './src/upstream/performance/stage.js';
+import {demoPose} from './src/upstream/motion/avatar-pose.js';
+const stage=new PerformanceStage(document.querySelector('#stage'));
+window.moonPreview=stage;
+let phase='expanded',last=performance.now(),demoTime=null;
+stage.effects.update({phase,tracking:false},0,[],10);
+function frame(now){
+  const dt=Math.min((now-last)/1000,.05);last=now;
+  if(demoTime!==null){
+    demoTime+=dt;
+    if(demoTime<1.4){phase='charging';stage.setPose(demoPose(0));}
+    else if(demoTime<3.4){phase='expanded';stage.setPose(demoPose(2+(demoTime-1.4)*2));}
+    else if(phase!=='complete')phase='launched';
+  }
+  const outcome=stage.render(dt,{phase,radius:.2,tracking:demoTime!==null},now/1000);
+  if(outcome)phase='complete';requestAnimationFrame(frame);
+}
+function closeup(){const pos=stage.effects.snapshot().moon;stage.controls.minDistance=1.3;stage.controls.target.set(...pos);stage.camera.position.set(pos[0]+.05,pos[1]+.05,pos[2]+2.25);stage.controls.update();}
+function wide(){stage.controls.minDistance=5;stage.controls.target.set(.2,2.35,0);stage.camera.position.set(0,2.9,9);stage.controls.update();}
+document.querySelector('#closeup').onclick=closeup;
+document.querySelector('#wide').onclick=wide;
+document.querySelector('#reset').onclick=()=>{demoTime=null;phase='expanded';stage.effects.reset();stage.effects.update({phase,tracking:false},0,[],10);closeup();};
+document.querySelector('#lift').onclick=()=>{stage.effects.reset();stage.points=demoPose(0);stage.setPose(stage.points);demoTime=0;phase='charging';wide();};
+requestAnimationFrame(frame);closeup();
+try{await stage.load({});document.querySelector('#status').textContent=stage.effects.snapshot().visual.loaded?'模型已就绪':'当前显示备用弯月';}
+catch(error){document.querySelector('#status').textContent='舞台载入失败，请刷新重试';console.error(error);}
+</script></body></html>
