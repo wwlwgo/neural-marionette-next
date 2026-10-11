@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "storyId": "moon-book-v1",
+  "storyRevision": 3,
+  "styleId": "watercolor-negative-space-v1",
+  "spellRef": {
+    "spellId": "moon-spell-v1",
+    "revision": 1
+  },
+  "themeId": "save-the-moon",
+  "bodyPages": [
+    {
+      "id": "moon-village",
+      "imageUrl": "01.png",
+      "text": "每个晚上，月亮都会照着大家回家。",
+      "altText": "村庄在近处山坡，山谷在右侧远处。月亮高挂天空，月光照亮屋顶、石桥和小路，小动物安心回家。建立村庄与山谷的空间关系。",
+      "audioUrl": "audio/moon-village.wav",
+      "audioText": "每个晚上，月亮都会照着大家回家。"
+    },
+    {
+      "id": "sleepy-moon",
+      "imageUrl": "02.png",
+      "text": "月亮掉进了山谷，村庄一下子暗了下来。",
+      "altText": "天空中原本月亮的位置空了，金色下落轨迹通向村外山谷。巨大月亮斜靠谷底，光被两侧山坡遮住，只照亮谷底。近处村庄屋顶与小路明显变暗，只剩窗户与提灯暖光。小动物停下，望向远处山谷。",
+      "audioUrl": "audio/sleepy-moon.wav",
+      "audioText": "月亮掉进了山谷，村庄一下子暗了下来。"
+    },
+    {
+      "id": "animals-cannot-move-moon",
+      "imageUrl": "03.png",
+      "text": "推呀，拉呀……月亮太大了，谁也搬不动！",
+      "altText": "月亮像一座金色小山，占据画面大半，高度是小动物的许多倍。小熊用肩推，狐狸拉绳，小兔帮忙；大家累得喘气，月亮纹丝不动。动作有童趣，无受伤破坏。远处山坡隐约可见村庄灯火，贾维斯不在谷底。",
+      "audioUrl": "audio/animals-cannot-move-moon.wav",
+      "audioText": "推呀，拉呀……月亮太大了，谁也搬不动！"
+    },
+    {
+      "id": "animals-ask-jarvis",
+      "imageUrl": "04.png",
+      "text": "贾维斯，请帮帮我们！把月亮送回天空吧！",
+      "altText": "贾维斯站在村庄边缘广场，小动物从山谷赶回求助。小兔提灯，狐狸指向谷底，小熊疲惫摊手。贾维斯俯身倾听，温柔伸手。背景留出清楚的山坡、谷口与距离，巨大月亮仍在远处谷底。没有独立人类孩子，双手没有已释放的大招。"
+    },
+    {
+      "id": "moon-invitation",
+      "imageUrl": "05.png",
+      "text": "贾维斯，准备好了吗？聚起能量，把月亮送回家！",
+      "altText": "完整保留鹿角、面罩、胸口和双手。蓝色面罩与胸口光源亮起，双手抬到胸前准备聚能，尚未释放。小动物在画面下缘仰望。简化背景保留暗夜与远处谷底月亮，月亮不在英雄身旁。没有独立人类孩子。姿态从倾听变为坚定温柔。此页暂停，邀请真实孩子驱动贾维斯。",
+      "audioUrl": "audio/moon-invitation.wav",
+      "audioText": "贾维斯，准备好了吗？聚起能量，把月亮送回家！"
+    }
+  ],
+  "performanceCue": {
+    "id": "moon-help",
+    "afterPageId": "moon-invitation",
+    "prompt": "贾维斯，准备好了吗？聚起能量，把月亮送回家！",
+    "targetId": "moon",
+    "expectedOutcome": "moon_restored"
+  },
+  "endingPage": {
+    "id": "moon-ending",
+    "imageUrl": "06.png",
+    "text": "谢谢你，贾维斯！大家又能看见回家的路了。",
+    "altText": "月亮重新高挂山谷上方天空，谷底已经空了。月光再次照亮小路、屋顶、石桥与远山，明显比第2页明亮。贾维斯仍在村庄，小动物围着他欢呼，再沿亮起来的小路回家。天空留下少量彩虹星光，无独立人类孩子。",
+    "audioUrl": "audio/moon-ending.wav",
+    "audioText": "谢谢你，贾维斯！大家又能看见回家的路了。"
+  },
+  "assetStatus": "ready",
+  "narration": {
+    "family": "Qwen3-TTS",
+    "voice": "Serena (synthetic)",
+    "language": "Chinese",
+    "generationStatus": "partial"
+  }
+}

@@ -6,7 +6,7 @@ export function createPerformanceView(container,{bundle,invitation,onResult}){
   const {config,sampleStore}=performanceInput(bundle,invitation);
   container.innerHTML=`<header class="topbar"><span class="brand"><span class="brand-icon">✦</span><span>贾维斯的魔法舞台<small>现在，轮到你来完成故事</small></span></span><button id="back" class="nav-button">← 回到绘本</button></header>
     <section class="intro"><span class="eyebrow">第三步 · 亲自演出</span><h1>一起把月亮送回家</h1><p>照着你刚才创造的动作，依次开始、蓄力、释放。每个姿势保持半秒。</p></section>
-    <section class="performance-layout"><div id="live-stage" class="live-stage"></div><aside class="performance-sidebar"><div class="camera-box"><video id="live-camera" playsinline muted></video><span id="tracking-label">摄像头尚未打开</span></div><p id="live-status" role="status">正在准备贾维斯与月亮…</p><div id="live-nodes" class="live-nodes"></div><button id="live-connect" class="primary" disabled>打开摄像头，开始演出</button><p class="performance-note">离开画面会暂停动作识别，回到画面可以接着完成。</p></aside></section>`;
+    <section class="performance-layout"><div id="live-stage" class="live-stage"></div><aside class="performance-sidebar"><div class="camera-box"><video id="live-camera" playsinline muted></video><span id="tracking-label">正在自动连接摄像头…</span></div><p id="live-status" role="status">正在准备贾维斯与月亮…</p><div id="live-nodes" class="live-nodes"></div><button id="live-connect" class="primary" hidden disabled>重试连接摄像头</button><p class="performance-note">离开画面会暂停动作识别，回到画面可以接着完成。</p></aside></section>`;
   const el=id=>container.querySelector('#'+id),status=text=>el('live-status').textContent=text;
   let disposed=false,waiting=false,starting=false,finished=false,timer;
   const tracker=new PoseTracker(el('live-camera'));
@@ -43,7 +43,7 @@ export function createPerformanceView(container,{bundle,invitation,onResult}){
   });
   const unsubTracker=tracker.subscribe(async packet=>{
     if(disposed)return;
-    if(packet.error){waiting=false;status(packet.error.message);el('live-connect').disabled=false;return;}
+    if(packet.error){waiting=false;status(packet.error.message);el('live-connect').disabled=false;el('live-connect').hidden=false;return;}
     if(waiting&&module.status==='ready'&&!starting&&tracker.isStable()){
       starting=true;
       try{await module.start('live');if(disposed)return;waiting=false;status('开始演出！先做你的第一个姿势，保持半秒。');}
@@ -55,13 +55,16 @@ export function createPerformanceView(container,{bundle,invitation,onResult}){
     // Covers loading/ready as well as a running M3; same invitation round closes.
     deliver({...invitation,schemaVersion:1,status:'cancelled',completedNodeIds:[],finishedAt:new Date().toISOString()});
   };
-  el('live-connect').onclick=async()=>{
+  async function connectCamera(){
+    if(disposed||module.status!=='ready')return;
+    el('live-connect').hidden=true;
     el('live-connect').disabled=true;status('正在连接摄像头，身体入镜后自动开始演出…');waiting=true;
-    try{await tracker.connect();if(disposed)return;el('live-connect').textContent='摄像头已连接';status('让肩膀、手肘和双手进入画面，稳定后就开始。');}
-    catch(error){if(!disposed){waiting=false;status(error.message);el('live-connect').disabled=false;}}
+    try{await tracker.connect();if(disposed)return;el('tracking-label').textContent='摄像头已连接';if(waiting)status('让肩膀、手肘和双手进入画面，稳定后就开始。');}
+    catch(error){if(!disposed){waiting=false;status(error.name==='NotAllowedError'?'请允许摄像头权限，然后点击重试连接。':error.message);el('live-connect').disabled=false;el('live-connect').hidden=false;}}
   };
+  el('live-connect').onclick=connectCamera;
   const ready=module.load(el('live-stage'),config).then(()=>{
-    if(!disposed){el('live-connect').disabled=false;status('舞台准备好了。打开摄像头，用刚录入的三个动作施法。');}
+    if(!disposed)return connectCamera();
   }).catch(error=>{if(!disposed)status('舞台加载失败：'+error.message+'。请回到绘本重新开始。');});
   return {dispose,ready};
 }

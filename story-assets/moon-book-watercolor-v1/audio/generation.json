@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-10-11T10:32:54.001211+00:00",
+  "referenceAudio": "moon-book-v1/audio/moon-village.wav",
+  "referenceText": "每个晚上，月亮都会陪大家走过最后一段路。",
+  "pages": [
+    {
+      "pageId": "moon-village",
+      "text": "每个晚上，月亮都会照着大家回家。",
+      "audioUrl": "audio/moon-village.wav",
+      "durationSeconds": 4.151,
+      "model": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+      "space": "Wordercom/Qwen3-TTS",
+      "voice": "Synthetic Serena reference"
+    },
+    {
+      "pageId": "sleepy-moon",
+      "text": "月亮掉进了山谷，村庄一下子暗了下来。",
+      "audioUrl": "audio/sleepy-moon.wav",
+      "durationSeconds": 5.19,
+      "model": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+      "space": "Wordercom/Qwen3-TTS",
+      "voice": "Synthetic Serena reference"
+    },
+    {
+      "pageId": "animals-cannot-move-moon",
+      "text": "推呀，拉呀……月亮太大了，谁也搬不动！",
+      "audioUrl": "audio/animals-cannot-move-moon.wav",
+      "model": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+      "space": "Wordercom/Qwen3-TTS",
+      "voice": "Synthetic Serena reference"
+    },
+    {
+      "pageId": "moon-invitation",
+      "text": "贾维斯，准备好了吗？聚起能量，把月亮送回家！",
+      "audioUrl": "audio/moon-invitation.wav",
+      "durationSeconds": 4.8,
+      "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+      "space": "Qwen/Qwen3-TTS",
+      "voice": "Serena"
+    },
+    {
+      "pageId": "moon-ending",
+      "text": "谢谢你，贾维斯！大家又能看见回家的路了。",
+      "audioUrl": "audio/moon-ending.wav",
+      "durationSeconds": 3.737,
+      "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+      "space": "Qwen/Qwen3-TTS",
+      "voice": "Serena"
+    }
+  ]
+}
