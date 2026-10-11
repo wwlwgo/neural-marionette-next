@@ -1,0 +1,10 @@
+{
+  "pose_landmarker_lite.task": {
+    "sha256": "59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a",
+    "bytes": 5777746
+  },
+  "guardian-rigged.glb": {
+    "sha256": "869f9f4d5218ed1be9cbb73fe28e3af8b0c6203934be9a3dc8449a2593f43093",
+    "bytes": 7104032
+  }
+}

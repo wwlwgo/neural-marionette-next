@@ -55,3 +55,7 @@ npm run build
 - [资源来源与许可记录](assets/licenses/README.md)
 
 历史文档描述原项目；新项目的目录、端口与协作约定以 README 和 HANDOFF 为准。原始参考需求不是本项目已经承诺或实现的功能清单。
+
+## 身体施法原型
+
+独立运行的 [energy-avatar](energy-avatar/README.md) 使用全身姿态驱动鹿角机甲，通过聚拢、拉开、上推三个节点完成救月亮演出。安装与启动在该子目录执行，默认端口为 5183。
