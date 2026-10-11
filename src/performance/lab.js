@@ -5,7 +5,7 @@ import {IndexedDBSampleStore,prepareTemplates} from '../motion/templates.js';
 import {configFixture,sampleFixtures} from '../../fixtures/m3/moon-spell.js';
 const $=id=>document.getElementById(id);
 const tracker=new PoseTracker($('camera')),persistentStore=new IndexedDBSampleStore();
-let samples=structuredClone(sampleFixtures),config=configFixture(),manualIndex=null,loading=false;
+let samples=structuredClone(sampleFixtures),config=configFixture(),manualIndex=null,loading=false,endingReturnFocus=null;
 const sampleStore={get:async id=>structuredClone(samples.find(s=>s.sampleId===id))||await persistentStore.get(id)};
 const module=new PerformanceModule({tracker,sampleStore,demoFrameProvider:()=>manualIndex===null?null:samples.find(s=>s.sampleId===config.motion.nodes[manualIndex].sampleId).frames[0]});
 const events=[];
@@ -22,7 +22,7 @@ module.subscribe(event=>{
   if(event.type==='ready')$('stage-status').textContent='鹿角守护者 · 已就绪';
   if(event.type==='phaseChanged'){$('hint').textContent=labels[event.phase];$('stage-status').textContent=labels[event.phase];}
   if(event.type==='result'){
-    if(event.result.status==='completed'){$('ending').hidden=false;$('ending-title').textContent=event.result.mode==='demo'?'示范完成':'你接住了月亮！';$('ending-detail').textContent=event.result.mode==='demo'?'现在可以连接摄像头，亲自试试。':'故事可以继续了。';}
+    if(event.result.status==='completed'){endingReturnFocus=document.activeElement;$('ending').hidden=false;$('ending-title').textContent=event.result.mode==='demo'?'示范完成':'你接住了月亮！';$('ending-detail').textContent=event.result.mode==='demo'?'现在可以连接摄像头，亲自试试。':'故事可以继续了。';$('ending-close').focus({preventScroll:true});}
     else message(event.result.status==='cancelled'?'本轮已取消，点击「再来一次」重新开始。':'本轮未完成，请检查摄像头后重试。');
   }
   controls();
@@ -43,7 +43,17 @@ $('connect').onclick=async()=>{
 $('start').onclick=async()=>{try{await module.start('live');$('mode').textContent='真人施法';message('请按顺序做出三个动作，系统会等待你。');}catch(error){report(error);}controls();};
 $('demo').onclick=async()=>{try{manualIndex=null;await module.start('demo');$('mode').textContent='动作示范 · 非真人';}catch(error){report(error);}controls();};
 $('pause').onclick=async()=>{try{if(module.paused)await module.resume();else module.pause();}catch(error){report(error);}controls();};
-$('cancel').onclick=()=>{module.cancel();controls();};$('reset').onclick=()=>{manualIndex=null;load();};
+function dismissEnding(){
+  if($('ending').hidden)return;
+  $('ending').hidden=true;
+  const target=endingReturnFocus?.isConnected&&!endingReturnFocus.disabled?endingReturnFocus:$('reset');
+  target.focus({preventScroll:true});
+}
+$('ending-close').onclick=dismissEnding;
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('ending').hidden){event.preventDefault();dismissEnding();}});
+$('cancel').onclick=()=>{module.cancel();controls();};
+async function restart(){manualIndex=null;dismissEnding();await load();$('demo').focus({preventScroll:true});}
+$('reset').onclick=restart;$('ending-again').onclick=restart;
 $('color').onchange=load;$('size').onchange=load;
 $('mirror').onchange=()=>{tracker.mirror=$('mirror').checked;tracker.recenter();for(const id of ['camera','overlay'])$(id).style.transform=$('mirror').checked?'scaleX(-1)':'none';};
 $('center').onclick=()=>tracker.recenter();

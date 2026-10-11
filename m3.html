@@ -6,7 +6,7 @@
     <header class="masthead"><a href="/" class="brand">鹿角守护者<span>身体施法实验室</span></a><span class="chapter">月亮故事 / 实时演出</span><span id="mode" class="badge">摄像头未开启</span></header>
     <section class="intro"><div><p class="eyebrow">轮到你，让故事继续</p><h1>把月亮，<em>托回天空。</em></h1></div><p>聚拢双手，慢慢展开，再向上托举。<br>你的动作，就是守护者的力量。</p></section>
     <div class="workspace">
-      <section class="stage-shell" aria-label="实时演出"><div id="stage"></div><div class="stage-caption"><span id="stage-status">正在唤醒守护者…</span><span>拖动画面可旋转视角</span></div><div id="ending" class="ending" hidden><p>月亮回到天空了</p><h2 id="ending-title">示范完成</h2><span id="ending-detail"></span></div></section>
+      <section class="stage-shell" aria-label="实时演出"><div id="stage"></div><div class="stage-caption"><span id="stage-status">正在唤醒守护者…</span><span>拖动画面可旋转视角</span></div><div id="ending" class="ending" role="dialog" aria-labelledby="ending-title" aria-describedby="ending-detail" hidden><button id="ending-close" class="ending-close" type="button" aria-label="关闭完成提示" title="关闭（Esc）">×</button><p>月亮回到天空了</p><h2 id="ending-title">示范完成</h2><span id="ending-detail"></span><button id="ending-again" class="button primary ending-again" type="button">再来一次</button></div></section>
       <aside class="guide">
         <div class="camera-heading"><h2>你的位置</h2><span id="tracking">尚未连接</span></div>
         <div class="camera"><video id="camera" playsinline muted></video><canvas id="overlay"></canvas><div id="camera-empty"><span>◌</span><p>让双肩、手肘和双手<br>都出现在画面里</p></div></div>
