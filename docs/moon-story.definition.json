@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "storyRevision": 3,
+  "storyId": "moon-book-v1",
+  "title": "把月亮轻轻送回家",
+  "status": "story-defined",
+  "illustrationStatus": "ready",
+  "assetManifest": "../story-assets/moon-book-watercolor-v1/manifest.json",
+  "hero": {
+    "name": "贾维斯",
+    "avatarId": "antler-guardian-v1",
+    "identityRule": "孩子通过身体操控贾维斯，绘本不出现独立人类孩子。"
+  },
+  "style": {
+    "id": "watercolor-negative-space-v1",
+    "orientation": "landscape",
+    "referenceImage": "../story-assets/moon-book-watercolor-v1/style-reference.png",
+    "description": "透明水彩、淡靛蓝与薰衣草夜色、柔和金色月光、纸面留白与晕染边缘。文字独立渲染。"
+  },
+  "spatialRules": [
+    "孩子通过身体操控贾维斯，绘本不出现独立人类孩子。",
+    "村庄在近处山坡，山谷在村外右侧远处。",
+    "掉落月亮始终在谷底，不在村内或英雄身边。",
+    "贾维斯在村庄施法，与巨大月亮之间保留明确距离。",
+    "月亮巨大，小动物合力也无法移动。",
+    "月亮掉落后村庄明显变暗；归位后月光恢复。"
+  ],
+  "bodyPages": [
+    {
+      "order": 1,
+      "id": "moon-village",
+      "title": "月光照着村庄",
+      "text": "每个晚上，月亮都会照着大家回家。",
+      "shot": "横版远景",
+      "visual": "村庄在近处山坡，山谷在右侧远处。月亮高挂天空，月光照亮屋顶、石桥和小路，小动物安心回家。建立村庄与山谷的空间关系。",
+      "moonState": "high-in-sky"
+    },
+    {
+      "order": 2,
+      "id": "sleepy-moon",
+      "title": "月亮掉进山谷",
+      "text": "月亮掉进了山谷，村庄一下子暗了下来。",
+      "shot": "与第1页相近的远景",
+      "visual": "天空中原本月亮的位置空了，金色下落轨迹通向村外山谷。巨大月亮斜靠谷底，光被两侧山坡遮住，只照亮谷底。近处村庄屋顶与小路明显变暗，只剩窗户与提灯暖光。小动物停下，望向远处山谷。",
+      "moonState": "fallen-in-valley"
+    },
+    {
+      "order": 3,
+      "id": "animals-cannot-move-moon",
+      "title": "大家搬不动它",
+      "text": "推呀，拉呀……月亮太大了，谁也搬不动！",
+      "shot": "谷底近景",
+      "visual": "月亮像一座金色小山，占据画面大半，高度是小动物的许多倍。小熊用肩推，狐狸拉绳，小兔帮忙；大家累得喘气，月亮纹丝不动。动作有童趣，无受伤破坏。远处山坡隐约可见村庄灯火，贾维斯不在谷底。",
+      "moonState": "fallen-in-valley"
+    },
+    {
+      "order": 4,
+      "id": "animals-ask-jarvis",
+      "title": "小动物向贾维斯求助",
+      "text": "贾维斯，请帮帮我们！把月亮送回天空吧！",
+      "shot": "村庄边缘中远景",
+      "visual": "贾维斯站在村庄边缘广场，小动物从山谷赶回求助。小兔提灯，狐狸指向谷底，小熊疲惫摊手。贾维斯俯身倾听，温柔伸手。背景留出清楚的山坡、谷口与距离，巨大月亮仍在远处谷底。没有独立人类孩子，双手没有已释放的大招。",
+      "moonState": "fallen-in-valley",
+      "heroLocation": "village"
+    },
+    {
+      "order": 5,
+      "id": "moon-invitation",
+      "title": "贾维斯准备施法",
+      "text": "贾维斯，准备好了吗？聚起能量，把月亮送回家！",
+      "shot": "贾维斯上半身特写",
+      "visual": "完整保留鹿角、面罩、胸口和双手。蓝色面罩与胸口光源亮起，双手抬到胸前准备聚能，尚未释放。小动物在画面下缘仰望。简化背景保留暗夜与远处谷底月亮，月亮不在英雄身旁。没有独立人类孩子。姿态从倾听变为坚定温柔。此页暂停，邀请真实孩子驱动贾维斯。",
+      "moonState": "fallen-in-valley",
+      "heroLocation": "village"
+    }
+  ],
+  "performanceCue": {
+    "id": "moon-help",
+    "afterPageId": "moon-invitation",
+    "prompt": "贾维斯，准备好了吗？聚起能量，把月亮送回家！",
+    "targetId": "moon",
+    "expectedOutcome": "moon_restored"
+  },
+  "performance": {
+    "cameraTransition": "从第5页英雄特写拉开为3D全景，建立近处英雄与远处谷底月亮的距离。",
+    "heroLocation": "village",
+    "targetLocation": "valley",
+    "sequence": [
+      "聚拢蓄力",
+      "拉开变大",
+      "向上释放，能量球飞过山坡到山谷",
+      "接触巨大月亮并托起送回天空"
+    ],
+    "completionRule": "本轮目标作用实际完成才接受 moon_restored，第三动作识别本身不是完成。"
+  },
+  "endingPage": {
+    "order": 6,
+    "id": "moon-ending",
+    "title": "月光回来了",
+    "text": "谢谢你，贾维斯！大家又能看见回家的路了。",
+    "shot": "与第1、2页相近的村庄远景",
+    "visual": "月亮重新高挂山谷上方天空，谷底已经空了。月光再次照亮小路、屋顶、石桥与远山，明显比第2页明亮。贾维斯仍在村庄，小动物围着他欢呼，再沿亮起来的小路回家。天空留下少量彩虹星光，无独立人类孩子。",
+    "moonState": "restored-high-in-sky",
+    "heroLocation": "village"
+  },
+  "extensionRule": "未来根据已实现的动作与特效能力改变救援方式，正文、舞台、结局共用同一方案；不引入独立孩子角色。"
+}

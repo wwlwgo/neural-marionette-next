@@ -21,6 +21,8 @@ __pycache__/
 *.avi
 *.mkv
 !docs/images/camera-off.png
+!story-assets/moon-book-watercolor-v1/*.png
+!story-player/screenshots/narration-preview.png
 docs/evidence/
 docs/reference-audit/
 tests/generated/

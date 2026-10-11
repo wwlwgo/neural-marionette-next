@@ -11,25 +11,33 @@
       "id": "moon-village",
       "imageUrl": "01.png",
       "text": "每个晚上，月亮都会陪大家走过最后一段路。",
-      "altText": "月亮照着小村庄"
+      "altText": "月亮照着小村庄",
+      "audioUrl": "audio/moon-village.wav",
+      "audioText": "每个晚上，月亮都会陪大家走过最后一段路。"
     },
     {
       "id": "sleepy-moon",
       "imageUrl": "02-v2.png",
       "text": "“哎呀！我掉到村庄的小路上了，谁能送我回天空？”",
-      "altText": "月亮从天空掉到村庄小路上，金色下落轨迹连到地面，小兔惊讶地看着它。"
+      "altText": "月亮从天空掉到村庄小路上，金色下落轨迹连到地面，小兔惊讶地看着它。",
+      "audioUrl": "audio/sleepy-moon.wav",
+      "audioText": "“哎呀！我掉到村庄的小路上了，谁能送我回天空？”"
     },
     {
       "id": "jarvis-plan",
       "imageUrl": "03-v2.png",
       "text": "“我们需要一团又大、又轻、又温柔的魔法。”",
-      "altText": "贾维斯站在掉落的月亮旁，月亮贴近地面，他伸手安慰月亮。"
+      "altText": "贾维斯站在掉落的月亮旁，月亮贴近地面，他伸手安慰月亮。",
+      "audioUrl": "audio/jarvis-plan.wav",
+      "audioText": "“我们需要一团又大、又轻、又温柔的魔法。”"
     },
     {
       "id": "rainbow-idea",
       "imageUrl": "04-v2.png",
       "text": "先聚起一点光，再把它变大，最后轻轻送上天空。",
-      "altText": "孩子想象用彩虹能量托起月亮，真正的月亮仍停在孩子身旁的地面上。"
+      "altText": "孩子想象用彩虹能量托起月亮，真正的月亮仍停在孩子身旁的地面上。",
+      "audioUrl": "audio/rainbow-idea.wav",
+      "audioText": "先聚起一点光，再把它变大，最后轻轻送上天空。"
     },
     {
       "id": "moon-invitation",
@@ -51,5 +59,11 @@
     "text": "谢谢你！今晚，是你的魔法照亮了回家的路。",
     "altText": "月亮回家了"
   },
-  "assetStatus": "ready"
+  "assetStatus": "ready",
+  "narration": {
+    "model": "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+    "speaker": "Serena",
+    "language": "Chinese",
+    "style": "用温柔、亲切、富有感情的女声给小朋友讲睡前绘本故事。语速稍慢，吐字清晰，轻柔而有自然起伏，在逗号和句号处自然停顿。"
+  }
 }
