@@ -1,4 +1,8 @@
 import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {loadGuardian} from './guardian.js';
 import {createEffects} from './effects.js';
@@ -19,6 +23,7 @@ export class PerformanceStage {
     this.renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1, 1.5));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.info.autoReset = false;
     this.renderer.domElement.setAttribute('aria-label', '鹿角守护者与月亮的三维舞台');
     container.append(this.renderer.domElement);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -42,13 +47,19 @@ export class PerformanceStage {
     starGeo.setAttribute('position', new THREE.Float32BufferAttribute(stars, 3));
     this.scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({color: '#b6c8ff', size: .025})));
     this.effects = createEffects(this.scene);
+    this.composer = new EffectComposer(this.renderer, new THREE.WebGLRenderTarget(1, 1, {type: THREE.HalfFloatType, samples: 4}));
+    this.renderPass = new RenderPass(this.scene, this.camera);
+    // Only HDR highlights spread; keep the dark stage and moon contour readable.
+    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), .3, .2, 1.0);
+    this.outputPass = new OutputPass();
+    for (const pass of [this.renderPass, this.bloomPass, this.outputPass]) this.composer.addPass(pass);
     this.points = restPose(); this.target = restPose();
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(container); this.resize();
   }
   async load(effect) {
     this.effects.configure(effect);
-    const guardian = await loadGuardian(this.scene);
+    const [guardian] = await Promise.all([loadGuardian(this.scene), this.effects.loadMoon()]);
     if (this.disposed) { guardian.dispose(); return; }
     this.guardian = guardian;
     this.guardian.update(this.points);
@@ -56,7 +67,7 @@ export class PerformanceStage {
   resize() {
     if (this.disposed) return;
     const w = Math.max(1, this.container.clientWidth), h = Math.max(1, this.container.clientHeight);
-    this.renderer.setSize(w, h, false); this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
+    this.renderer.setSize(w, h, false); this.composer.setSize(w, h); this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
   }
   setPose(points) {
     for (const [name, value] of Object.entries(points || {})) {
@@ -79,7 +90,7 @@ export class PerformanceStage {
     const forward = across.cross(up).normalize();
     const hands = handsCenter.addScaledVector(forward, .22).toArray();
     const outcome = this.effects.update(state, time, hands, dt);
-    this.controls.update(); this.renderer.render(this.scene, this.camera);
+    this.controls.update(); this.renderer.info.reset(); this.composer.render();
     return outcome;
   }
   snapshot() {
@@ -88,7 +99,8 @@ export class PerformanceStage {
   dispose() {
     if (this.disposed) return;
     this.disposed = true; this.resizeObserver.disconnect(); this.controls.dispose();
-    this.guardian?.dispose(); disposeModel(this.scene); this.scene.clear();
+    this.effects.dispose(); this.guardian?.dispose(); disposeModel(this.scene); this.scene.clear();
+    for (const pass of this.composer.passes) pass.dispose(); this.composer.dispose();
     this.renderer.dispose(); this.renderer.forceContextLoss(); this.renderer.domElement.remove();
   }
 }
