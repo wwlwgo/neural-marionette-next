@@ -1,0 +1,9 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>M3 集成验收 · 固定测试样本</title><body><div id="app"></div><script type="module">
+import '../src/style.css';
+import {createPerformanceView} from '../src/performance-view.js';
+import bundle from './m3-fixture.json';
+bundle.config.runId=crypto.randomUUID();
+const invitation={runId:bundle.config.runId,storyId:bundle.config.storyId,cueId:bundle.config.cueId,spellRef:bundle.config.spellRef,mode:'live'};
+const app=document.querySelector('#app');
+createPerformanceView(app,{bundle,invitation,onResult:result=>{document.title='M3 验收结果：'+result.status;}});
+</script></body></html>

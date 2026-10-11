@@ -1,0 +1,44 @@
+[
+  {
+    "n": 1,
+    "id": "moon-village",
+    "title": "月亮照着小村庄",
+    "text": "每个晚上，月亮都会陪大家走过最后一段路。",
+    "scene": "Establishing wide view of a tiny cozy village at night, clustered timber cottages and a low stone bridge over a stream. A friendly golden CRESCENT moon with eyes open and gentle smile is HIGH in the upper-right sky, illuminating a winding homeward path. Three small rabbits, one brown adult and two cream young rabbits, walk home on the path. Jarvis is NOT present on this page. Peaceful opening, clear expansive sky. Moon is up high, not falling yet."
+  },
+  {
+    "n": 2,
+    "id": "sleepy-moon",
+    "title": "月亮打起了瞌睡",
+    "text": "“哎呀！我掉到村庄的小路上了，谁能送我回天空？”",
+    "scene": "Actual crescent moon has fallen onto village street in lower-right foreground: bottom tip near cobblestones, warm glow underneath, wholly below nearby roofs, no actual moon in the sky. Rabbits surprised, golden falling trail from empty sky, sleepy yawning moon."
+  },
+  {
+    "n": 3,
+    "id": "jarvis-plan",
+    "title": "贾维斯想办法",
+    "text": "“我们需要一团又大、又轻、又温柔的魔法。”",
+    "scene": "Actual crescent moon has fallen onto village street in lower-right foreground: bottom tip near cobblestones, warm glow underneath, wholly below nearby roofs, no actual moon in the sky. Jarvis reaches down to comfort moon; hands empty, ladder set aside."
+  },
+  {
+    "n": 4,
+    "id": "rainbow-idea",
+    "title": "孩子创造了办法",
+    "text": "先聚起一点光，再把它变大，最后轻轻送上天空。",
+    "scene": "Actual crescent moon has fallen onto village street in lower-right foreground: bottom tip near cobblestones, warm glow underneath, wholly below nearby roofs, no actual moon in the sky. Child suggests rainbow cushion in small thought bubble; actual moon remains beside child on ground."
+  },
+  {
+    "n": 5,
+    "id": "moon-invitation",
+    "title": "轮到你来帮忙",
+    "text": "准备好了吗？让你的动作变成魔法，把我送回家吧！",
+    "scene": "Actual crescent moon has fallen onto village street in lower-right foreground: bottom tip near cobblestones, warm glow underneath, wholly below nearby roofs, no actual moon in the sky. Jarvis faces reader with empty open palms inviting participation; fallen moon waits beside him."
+  },
+  {
+    "n": 6,
+    "id": "moon-ending",
+    "title": "月亮回家了",
+    "text": "谢谢你！今晚，是你的魔法照亮了回家的路。",
+    "scene": "Happy ending, same night village: golden CRESCENT moon is now HIGH back in upper-right sky, smiling eyes open, far ABOVE all rooftops. Jarvis full-body center-left gently waves one hand toward viewer in thanks, other hand relaxed. Rainbow magic has become a scattering of tiny colorful glowing star flecks in the sky, NO giant ball left in hands. Same three rabbits walk home happily along moonlit path. Warm cottage windows, gentle joyful resolution, clearly moon restored."
+  }
+]

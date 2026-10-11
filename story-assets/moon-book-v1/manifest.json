@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "storyId": "moon-book-v1",
+  "spellRef": {
+    "spellId": "moon-spell-v1",
+    "revision": 1
+  },
+  "themeId": "save-the-moon",
+  "bodyPages": [
+    {
+      "id": "moon-village",
+      "imageUrl": "01.png",
+      "text": "每个晚上，月亮都会陪大家走过最后一段路。",
+      "altText": "月亮照着小村庄"
+    },
+    {
+      "id": "sleepy-moon",
+      "imageUrl": "02-v2.png",
+      "text": "“哎呀！我掉到村庄的小路上了，谁能送我回天空？”",
+      "altText": "月亮从天空掉到村庄小路上，金色下落轨迹连到地面，小兔惊讶地看着它。"
+    },
+    {
+      "id": "jarvis-plan",
+      "imageUrl": "03-v2.png",
+      "text": "“我们需要一团又大、又轻、又温柔的魔法。”",
+      "altText": "贾维斯站在掉落的月亮旁，月亮贴近地面，他伸手安慰月亮。"
+    },
+    {
+      "id": "rainbow-idea",
+      "imageUrl": "04-v2.png",
+      "text": "先聚起一点光，再把它变大，最后轻轻送上天空。",
+      "altText": "孩子想象用彩虹能量托起月亮，真正的月亮仍停在孩子身旁的地面上。"
+    },
+    {
+      "id": "moon-invitation",
+      "imageUrl": "05-v2.png",
+      "text": "准备好了吗？让你的动作变成魔法，把我送回家吧！",
+      "altText": "贾维斯张开双手邀请孩子施法，月亮在他身旁贴近地面的地方等待帮助。"
+    }
+  ],
+  "performanceCue": {
+    "id": "moon-help",
+    "afterPageId": "moon-invitation",
+    "prompt": "准备好了吗？让你的动作变成魔法，把我送回家吧！",
+    "targetId": "moon",
+    "expectedOutcome": "moon_restored"
+  },
+  "endingPage": {
+    "id": "moon-ending",
+    "imageUrl": "06.png",
+    "text": "谢谢你！今晚，是你的魔法照亮了回家的路。",
+    "altText": "月亮回家了"
+  },
+  "assetStatus": "ready"
+}
