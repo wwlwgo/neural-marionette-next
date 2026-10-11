@@ -17,3 +17,18 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+  energy-avatar:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: energy-avatar
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: energy-avatar/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build

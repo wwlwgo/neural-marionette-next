@@ -1,0 +1,16 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>识别链路测试</title><body><button id="run">测试模型和空白帧</button><p id="result">尚未测试；不使用摄像头。</p><script type="module">
+const result=document.getElementById('result');
+document.getElementById('run').onclick=()=>{
+  const worker=new Worker('/tracker.js');
+  const timeout=setTimeout(()=>{result.textContent='FAIL: timeout';worker.terminate();},30000);
+  result.textContent='加载模型中';
+  worker.onerror=event=>{clearTimeout(timeout);result.textContent='FAIL: '+event.message;worker.terminate();};
+  worker.onmessage=async({data})=>{
+    if(data.type==='ready'){
+      result.textContent='模型已加载，正在推理空白帧';
+      const canvas=new OffscreenCanvas(640,480);canvas.getContext('2d').fillRect(0,0,640,480);
+      const bitmap=canvas.transferToImageBitmap();worker.postMessage({type:'frame',bitmap,time:performance.now()},[bitmap]);
+    }else{clearTimeout(timeout);result.textContent=data.type==='pose'&&!data.image?'PASS: 模型加载成功，空白帧推理成功，无误检。': 'FAIL: '+JSON.stringify(data);worker.terminate();}
+  };worker.postMessage({type:'init'});
+};
+</script></body></html>
