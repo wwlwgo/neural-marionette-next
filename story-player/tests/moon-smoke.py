@@ -31,14 +31,33 @@ with sync_playwright() as p:
     assert completed['result']['outcome'] == 'moon_restored', completed
     assert completed['result']['completedNodeIds'] == ['start','charge','release']
     assert completed['stage']['effects']['visual']['loaded']
-    assert result['reset']['stage']['effects']['moon'] == [1.25,3.05,-.5]
+    assert not result['reset']['stage']['effects']['visible']
+    assert completed['stage']['effects']['moon'][1] - completed['stage']['effects']['launchOrigin'][1] > 1.2
     assert not result['reset']['stage']['effects']['restored']
     assert result['canvasesAfterDispose'] == 0
     page.goto('http://127.0.0.1:5185/moon-preview.html',wait_until='networkidle')
     page.wait_for_function('moonPreview.effects.snapshot().visual.loaded')
+    page.locator('#lift').click()
+    page.wait_for_function("moonPreview.effects.snapshot().phase === 'expanded'")
+    held = page.evaluate('moonPreview.effects.snapshot()')
+    page.screenshot(path='/tmp/moon-held.png')
+    page.wait_for_function('moonPreview.effects.snapshot().restored', timeout=20000)
+    risen = page.evaluate('moonPreview.effects.snapshot()')
+    assert risen['moon'][1] - held['moon'][1] > 1.5
+    page.screenshot(path='/tmp/moon-risen.png')
     page.set_viewport_size({'width':390,'height':844})
     page.wait_for_function('moonPreview.camera.aspect < 1')
     assert page.locator('#stage canvas').bounding_box()['width'] == 390
+    assert page.evaluate('''async () => {
+      const {Vector3} = await import('/node_modules/three/build/three.module.js');
+      const snap=moonPreview.effects.snapshot();
+      return [-1,1].every(x=>[-1,1].every(y=>[-1,1].every(z=>{
+        const p=new Vector3(...snap.moon).add(new Vector3(x,y,z).multiplyScalar(snap.radius)).project(moonPreview.camera);
+        return Math.abs(p.x)<1 && Math.abs(p.y)<1 && Math.abs(p.z)<1;
+      })));
+    }'''), 'the complete moon sphere must remain inside the portrait camera'
+    page.locator('#reset').click()
+    assert not page.evaluate('moonPreview.effects.snapshot().restored')
     assert not errors, errors
     print(json.dumps({'result':completed['result'],'moon':completed['stage']['effects'],'reset':result['reset']['status'],'portrait':'passed','errors':errors},ensure_ascii=False))
     browser.close()

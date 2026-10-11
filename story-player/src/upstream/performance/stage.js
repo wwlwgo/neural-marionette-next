@@ -18,7 +18,7 @@ export class PerformanceStage {
     this.scene.background = new THREE.Color('#111a35');
     this.scene.fog = new THREE.Fog('#111a35', 12, 30);
     this.camera = new THREE.PerspectiveCamera(40, 1, .1, 60);
-    this.camera.position.set(0, 2.65, 7.8);
+    this.camera.position.set(0, 2.9, 9);
     this.renderer = new THREE.WebGLRenderer({antialias: true});
     this.renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1, 1.5));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -27,7 +27,7 @@ export class PerformanceStage {
     this.renderer.domElement.setAttribute('aria-label', '鹿角守护者与月亮的三维舞台');
     container.append(this.renderer.domElement);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.target.set(.3, 2.15, 0);
+    this.controls.target.set(.2, 2.35, 0);
     this.controls.enableDamping = true;
     this.controls.enablePan = false;
     this.controls.minDistance = 5;

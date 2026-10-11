@@ -1,49 +1,63 @@
 import * as THREE from 'three';
 import {createMoonVisual} from './moon.js';
 
-// Scene feedback owns completion: contact is required before the moon can rise.
+// The scene completes the spell only after the held moon reaches the sky.
 export function createEffects(scene) {
   const ball = new THREE.Group(); scene.add(ball);
-  const core = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), new THREE.MeshBasicMaterial({color: '#9be8ef', transparent: true, opacity: .88, depthWrite: false, toneMapped: false}));
-  ball.add(core);
+  // Open rings leave the crescent and its transparent sphere unobstructed.
   const rings = [0, 1, 2].map(i => {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.07, .022, 8, 80), new THREE.MeshBasicMaterial({color: ['#9be8ef', '#f1b8ed', '#ffebaf'][i], transparent: true, opacity: .85}));
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(.54, .008, 8, 80), new THREE.MeshBasicMaterial({color: ['#9be8ef', '#f1b8ed', '#ffebaf'][i], transparent: true, opacity: .45, depthWrite: false}));
     ball.add(ring); return ring;
   });
   const moonVisual = createMoonVisual();
   const moon = moonVisual.group; scene.add(moon);
-  const base = new THREE.Vector3(1.25, 3.05, -.5);
-  const goal = base.clone().add(new THREE.Vector3(0, .7, 0));
-  let phase = 'idle', touched = false, restored = false, sizeScale = 1;
-  function reset() { phase = 'idle'; touched = restored = false; moon.position.copy(base); ball.visible = false; ball.position.set(0, 1.8, 0); moonVisual.update(0, false); }
+  const base = new THREE.Vector3(0, 1.8, .4);
+  const goal = new THREE.Vector3(.7, 4.5, -.5);
+  const launchOrigin = new THREE.Vector3();
+  const flightDuration = 3.2;
+  let phase = 'idle', restored = false, sizeScale = 1, flightTime = 0;
+  function reset() {
+    phase = 'idle'; restored = false; flightTime = 0; launchOrigin.copy(base);
+    moon.position.copy(base); moon.scale.setScalar(.5 * sizeScale); moon.visible = false;
+    ball.visible = false; ball.position.copy(base); ball.scale.copy(moon.scale);
+    moonVisual.update(0, false);
+  }
   reset();
   return {
-    configure({color = '#9be8ef', sizeScale: size = 1} = {}) { sizeScale = size; core.material.color.set(color); rings[0].material.color.set(color); },
+    configure({color = '#9be8ef', sizeScale: size = 1} = {}) { sizeScale = size; rings[0].material.color.set(color); },
     reset,
     loadMoon: () => moonVisual.load(),
     dispose: () => moonVisual.dispose(),
     update(state, time, hands, dt = 0) {
       if (state.phase === 'idle' && phase !== 'idle') reset();
-      if (state.phase === 'launched' && phase !== 'launched') ball.position.fromArray(hands);
-      phase = state.phase;
-      ball.visible = phase !== 'idle' && phase !== 'complete';
-      if ((phase === 'charging' || phase === 'expanded') && state.tracking !== false) ball.position.fromArray(hands);
-      if (phase === 'launched' && !restored) {
-        if (!touched) {
-          const delta = base.clone().sub(ball.position), distance = delta.length();
-          ball.position.addScaledVector(delta.normalize(), Math.min(distance, dt * 2.0));
-          if (ball.position.distanceTo(base) <= .025) { touched = true; ball.position.copy(base); }
-        } else {
-          moon.position.y = Math.min(goal.y, moon.position.y + dt * .48);
-          ball.position.copy(moon.position);
-          restored = moon.position.distanceTo(goal) < .001;
-        }
+      const validHands = state.tracking !== false && hands?.length === 3 && hands.every(Number.isFinite);
+      const enteringLaunch = state.phase === 'launched' && phase !== 'launched';
+      if (enteringLaunch) {
+        // Capture the actual palms once; later tracking cannot drag a released moon.
+        if (validHands) moon.position.fromArray(hands);
+        launchOrigin.copy(moon.position); flightTime = 0;
       }
-      ball.scale.setScalar((state.radius || .2) * sizeScale);
-      rings.forEach((ring, i) => ring.rotation.set(time * (.3 + i * .13) + i, time * .25 + i * 1.1, time * .2));
+      phase = state.phase;
+      moon.visible = phase !== 'idle';
+      if ((phase === 'charging' || phase === 'expanded') && validHands) moon.position.fromArray(hands);
+      if (phase === 'launched' && !restored) {
+        flightTime = Math.min(flightDuration, flightTime + Math.max(0, dt));
+        const progress = flightTime / flightDuration;
+        const eased = progress * progress * (3 - 2 * progress);
+        moon.position.lerpVectors(launchOrigin, goal, eased);
+        restored = flightTime >= flightDuration;
+      }
+      const targetScale = (phase === 'charging' ? .5 : 1) * sizeScale;
+      moon.scale.setScalar(THREE.MathUtils.lerp(moon.scale.x, targetScale, 1 - Math.exp(-Math.max(0, dt) * 5)));
+      ball.visible = phase === 'charging' || phase === 'expanded' || (phase === 'launched' && flightTime < 1);
+      ball.position.copy(moon.position); ball.scale.copy(moon.scale);
+      rings.forEach((ring, i) => {
+        ring.rotation.set(time * (.3 + i * .13) + i, time * .25 + i * 1.1, time * .2);
+        ring.material.opacity = .45 * (phase === 'launched' ? Math.max(0, 1 - flightTime) : 1);
+      });
       moonVisual.update(time, restored);
       return restored ? 'moon_restored' : null;
     },
-    snapshot() { return {phase, touched, restored, visual: moonVisual.snapshot(), ball: ball.position.toArray(), moon: moon.position.toArray(), radius: ball.scale.x}; }
+    snapshot() { return {phase, restored, visible: moon.visible, launchOrigin: launchOrigin.toArray(), flightProgress: flightTime / flightDuration, visual: moonVisual.snapshot(), ball: ball.position.toArray(), moon: moon.position.toArray(), radius: moon.scale.x * .5}; }
   };
 }

@@ -47,22 +47,43 @@ test('repeated load shares the request and loaded textures are released once', a
   assert.equal(loads, 1); assert.equal(visual.snapshot().loaded, true);
   visual.dispose(); visual.dispose(); assert.equal(releases, 1);
 });
-test('moon rises only after contact, reaches the same goal, and resets the aura with the model', () => {
+test('moon follows the palms while charging, then rises independently before reporting completion', () => {
   const scene = new THREE.Scene(), effects = createEffects(scene);
-  const idle = {phase: 'idle', radius: .2};
-  effects.update(idle, 0, [0, 1.8, 0], 10);
-  assert.equal(effects.snapshot().moon[1], 3.05);
-  const launch = {...idle, phase: 'launched'};
-  effects.update(launch, 0, [0, 1.8, 0], .01);
-  assert.equal(effects.snapshot().touched, false);
-  assert.equal(effects.snapshot().moon[1], 3.05);
-  let result;
-  for (let i = 0; i < 200; i++) result = effects.update(launch, i * .05, [0, 1.8, 0], .05);
-  assert.equal(result, 'moon_restored');
-  assert.equal(effects.snapshot().moon[1], 3.75);
+  assert.equal(effects.snapshot().visible, false);
+  effects.update({phase: 'charging'}, 0, [-.2, 1.7, .4], .05);
+  assert.deepEqual(effects.snapshot().moon, [-.2, 1.7, .4]);
+  assert.equal(effects.snapshot().visible, true);
+  effects.update({phase: 'expanded'}, 1, [.1, 2.3, .5], 1);
+  assert.ok(effects.snapshot().radius > .49);
+  const launch = {phase: 'launched'};
+  assert.equal(effects.update(launch, 2, [.1, 2.8, .5], 0), null);
+  assert.deepEqual(effects.snapshot().launchOrigin, [.1, 2.8, .5]);
+  let previous = 2.8;
+  for (let i = 0; i < 63; i++) {
+    assert.equal(effects.update(launch, 2 + i * .05, [2, .5, 0], .05), null);
+    assert.ok(effects.snapshot().moon[1] >= previous);
+    previous = effects.snapshot().moon[1];
+  }
+  assert.equal(effects.update(launch, 6, [2, .5, 0], .1), 'moon_restored');
+  assert.deepEqual(effects.snapshot().moon, [.7, 4.5, -.5]);
   effects.reset();
-  assert.deepEqual(effects.snapshot().moon, [1.25, 3.05, -.5]);
+  assert.equal(effects.snapshot().visible, false);
+  assert.equal(effects.snapshot().flightProgress, 0);
   assert.equal(effects.snapshot().restored, false);
   assert.equal(effects.snapshot().visual.emissiveIntensity, .45);
+  effects.update({phase: 'charging'}, 0, [.3, 1.6, .4], .05);
+  assert.deepEqual(effects.snapshot().moon, [.3, 1.6, .4]);
+  effects.dispose(); disposeModel(scene);
+});
+test('tracking loss preserves the held moon and a zero-dt frame pauses its flight', () => {
+  const scene = new THREE.Scene(), effects = createEffects(scene);
+  effects.update({phase: 'expanded'}, 0, [0, 2, .4], .5);
+  effects.update({phase: 'expanded', tracking: false}, 1, [9, 9, 9], .5);
+  assert.deepEqual(effects.snapshot().moon, [0, 2, .4]);
+  effects.update({phase: 'launched', tracking: false}, 2, [9, 9, 9], 0);
+  assert.deepEqual(effects.snapshot().launchOrigin, [0, 2, .4]);
+  assert.equal(effects.snapshot().flightProgress, 0);
+  effects.update({phase: 'launched', tracking: false}, 3, [], 1);
+  assert.ok(effects.snapshot().moon[1] > 2);
   effects.dispose(); disposeModel(scene);
 });

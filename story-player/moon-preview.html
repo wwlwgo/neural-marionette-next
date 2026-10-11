@@ -7,16 +7,28 @@
 <nav><button id="closeup">月亮特写</button><button id="wide">完整舞台</button><button id="lift">播放托月</button><button id="reset">复位</button><a href="./">进入绘本</a></nav>
 <script type="module">
 import {PerformanceStage} from './src/upstream/performance/stage.js';
+import {demoPose} from './src/upstream/motion/avatar-pose.js';
 const stage=new PerformanceStage(document.querySelector('#stage'));
 window.moonPreview=stage;
-let phase='idle',last=performance.now();
-function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;const outcome=stage.render(dt,{phase,radius:.2,tracking:true},now/1000);if(outcome)phase='complete';requestAnimationFrame(frame);}
+let phase='expanded',last=performance.now(),demoTime=null;
+stage.effects.update({phase,tracking:false},0,[],10);
+function frame(now){
+  const dt=Math.min((now-last)/1000,.05);last=now;
+  if(demoTime!==null){
+    demoTime+=dt;
+    if(demoTime<1.4){phase='charging';stage.setPose(demoPose(0));}
+    else if(demoTime<3.4){phase='expanded';stage.setPose(demoPose(2+(demoTime-1.4)*2));}
+    else if(phase!=='complete')phase='launched';
+  }
+  const outcome=stage.render(dt,{phase,radius:.2,tracking:demoTime!==null},now/1000);
+  if(outcome)phase='complete';requestAnimationFrame(frame);
+}
 function closeup(){const pos=stage.effects.snapshot().moon;stage.controls.minDistance=1.3;stage.controls.target.set(...pos);stage.camera.position.set(pos[0]+.05,pos[1]+.05,pos[2]+2.25);stage.controls.update();}
-function wide(){stage.controls.minDistance=5;stage.controls.target.set(.3,2.15,0);stage.camera.position.set(0,2.65,7.8);stage.controls.update();}
+function wide(){stage.controls.minDistance=5;stage.controls.target.set(.2,2.35,0);stage.camera.position.set(0,2.9,9);stage.controls.update();}
 document.querySelector('#closeup').onclick=closeup;
 document.querySelector('#wide').onclick=wide;
-document.querySelector('#reset').onclick=()=>{phase='idle';stage.effects.reset();closeup();};
-document.querySelector('#lift').onclick=()=>{stage.effects.reset();phase='launched';wide();};
+document.querySelector('#reset').onclick=()=>{demoTime=null;phase='expanded';stage.effects.reset();stage.effects.update({phase,tracking:false},0,[],10);closeup();};
+document.querySelector('#lift').onclick=()=>{stage.effects.reset();stage.points=demoPose(0);stage.setPose(stage.points);demoTime=0;phase='charging';wide();};
 requestAnimationFrame(frame);closeup();
 try{await stage.load({});document.querySelector('#status').textContent=stage.effects.snapshot().visual.loaded?'模型已就绪':'当前显示备用弯月';}
 catch(error){document.querySelector('#status').textContent='舞台载入失败，请刷新重试';console.error(error);}
