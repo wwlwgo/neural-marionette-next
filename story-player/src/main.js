@@ -3,7 +3,7 @@ import { createBookPlayer } from './player.js';
 import { createCapture } from './capture.js';
 import { createPerformanceView } from './performance-view.js';
 const app=document.querySelector('#app');
-createCapture(app,{onContinue:bundle=>{
+function mountReader(bundle){
   app.replaceChildren();
   const reader=document.createElement('div'),stage=document.createElement('div');
   stage.hidden=true;app.append(reader,stage);
@@ -25,4 +25,9 @@ createCapture(app,{onContinue:bundle=>{
     } : undefined,
   });
   player.load('/book/manifest.json').then(()=>player.start({autoAdvance:true}));
-}});
+}
+if(new URLSearchParams(location.search).has('capture')){
+  createCapture(app,{onContinue:mountReader});
+}else{
+  mountReader();
+}
