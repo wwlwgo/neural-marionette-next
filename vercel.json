@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "cd story-player && npm install",
-  "buildCommand": "cd story-player && npm run build",
-  "outputDirectory": "story-player/dist"
+  "installCommand": "npm install && npm --prefix story-player install",
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "dist"
 }

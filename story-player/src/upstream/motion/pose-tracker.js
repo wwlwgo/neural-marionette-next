@@ -23,7 +23,7 @@ export class PoseTracker {
   async open(generation){
     try {
       await new Promise((resolve,reject)=>{
-        this.rejectBoot=reject;this.worker=new Worker('/pose-tracker.worker.js');
+        this.rejectBoot=reject;this.worker=new Worker(`${import.meta.env.BASE_URL}pose-tracker.worker.js`);
         this.bootTimer=setTimeout(()=>reject(new Error('身体识别模型加载超时，请重试。')),45000);
         this.worker.onerror=event=>{if(generation!==this.generation)return;const error=new Error(event.message||'身体识别中断');if(this.ready)this.fail(error);else reject(error);};
         this.worker.onmessage=({data})=>{

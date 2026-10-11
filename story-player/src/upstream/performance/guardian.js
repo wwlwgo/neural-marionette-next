@@ -10,7 +10,7 @@ function basis(across,up){
   return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,y,z));
 }
 export async function loadGuardian(scene){
-  const gltf=await new GLTFLoader().loadAsync('/models/guardian-rigged.glb');
+  const gltf=await new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}models/guardian-rigged.glb`);
   gltf.scene.traverse(o=>{if(o.isSkinnedMesh){o.skeleton.pose();o.frustumCulled=false;o.castShadow=true;}});
   const group=new THREE.Group();group.add(gltf.scene);scene.add(group);
   const box=new THREE.Box3().setFromObject(group),size=box.getSize(new THREE.Vector3()),scale=2.8/size.y;

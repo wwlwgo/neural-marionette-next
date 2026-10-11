@@ -29,4 +29,6 @@ header{height:78px}.intro{padding:24px 0}.intro h1{font-family:"Songti SC","STSo
 
 [hidden]{display:none!important}#studio-paused{padding:28px;color:#f7d4a1;line-height:1.8}#run-rule-status{font-size:13px;line-height:1.8;color:#f7d4a1}#learn-panel{margin-top:18px}#learn-exit{border-color:#ffbd75;color:#ffcf9a}
 
+.story-link{margin-left:auto;padding:8px 12px;border:1px solid #4b465d;border-radius:5px;color:#d9caed;text-decoration:none;font-size:10px;letter-spacing:.8px;white-space:nowrap;transition:background .2s,color .2s,border-color .2s}.story-link:hover{color:#fff4df;background:#29233a;border-color:#8e79ad}.story-link span{color:var(--amber);margin-left:7px}.story-link+.local-tag{margin-left:0}@media(max-width:650px){header{gap:10px}.story-link{padding:7px 9px;font-size:9px}.story-link span{display:none}.story-link+.local-tag{font-size:0;gap:0}}
+
 .character-panel details:not([open]){display:block}.character-panel pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto}.character-panel .file-label{display:block;margin:16px 0}

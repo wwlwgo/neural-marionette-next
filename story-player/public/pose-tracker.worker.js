@@ -1,13 +1,14 @@
 /* Same local Tasks Vision runtime as V2; the body model is separate. */
 self.exports = {};
-importScripts('/vendor/vision_bundle.js');
+const asset = path => new URL(path, self.location.href).href;
+importScripts(asset('vendor/vision_bundle.js'));
 let tracker;
 self.onmessage = async ({data}) => {
   if (data.type === 'init') {
     try {
-      const files = await self.exports.FilesetResolver.forVisionTasks('/wasm');
+      const files = await self.exports.FilesetResolver.forVisionTasks(asset('wasm'));
       tracker = await self.exports.PoseLandmarker.createFromOptions(files, {
-        baseOptions: {modelAssetPath: '/models/pose_landmarker_lite.task', delegate: 'CPU'},
+        baseOptions: {modelAssetPath: asset('models/pose_landmarker_lite.task'), delegate: 'CPU'},
         runningMode: 'VIDEO', numPoses: 1, minPoseDetectionConfidence: .5,
         minPosePresenceConfidence: .5, minTrackingConfidence: .5
       });

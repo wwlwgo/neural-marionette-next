@@ -24,5 +24,5 @@ createCapture(app,{onContinue:bundle=>{
       }
     } : undefined,
   });
-  player.load('/book/manifest.json').then(()=>player.start({autoAdvance:true}));
+  player.load(`${import.meta.env.BASE_URL}book/manifest.json`).then(()=>player.start({autoAdvance:true}));
 }});
