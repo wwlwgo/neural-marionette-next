@@ -71,7 +71,13 @@ export class PerformanceStage {
     const alpha = 1 - Math.exp(-dt * 16);
     for (const name of Object.keys(this.points)) this.points[name] = this.points[name].map((v, i) => v + (this.target[name][i] - v) * alpha);
     this.guardian?.update(this.points);
-    const hands = this.guardian ? this.guardian.point('LeftHand').add(this.guardian.point('RightHand')).multiplyScalar(.5).toArray() : [0, 1.8, 0];
+    const handsCenter = this.guardian ? this.guardian.point('LeftHand').add(this.guardian.point('RightHand')).multiplyScalar(.5) : new THREE.Vector3(0, 1.8, 0);
+    // Wrist bones sit inside the gauntlets. Float the orb just in front of the
+    // palms, following the torso direction, so chest armour cannot swallow it.
+    const across = new THREE.Vector3().fromArray(this.points.rs).sub(new THREE.Vector3().fromArray(this.points.ls));
+    const up = new THREE.Vector3().fromArray(this.points.neck).sub(new THREE.Vector3().fromArray(this.points.waist));
+    const forward = across.cross(up).normalize();
+    const hands = handsCenter.addScaledVector(forward, .22).toArray();
     const outcome = this.effects.update(state, time, hands, dt);
     this.controls.update(); this.renderer.render(this.scene, this.camera);
     return outcome;

@@ -76,13 +76,20 @@ with sync_playwright() as p:
     live.add_init_script('''window.Worker=class {
       postMessage(data){if(data.type==='init'){queueMicrotask(()=>this.onmessage?.({data:{type:'ready'}}));return;}
         if(data.type==='frame'){data.bitmap.close();const frame=window.testPose;
-          let image,world;if(frame){image=Array.from({length:33},()=>({x:.5,y:.7,z:0,visibility:0}));world=Array.from({length:33},()=>({x:0,y:0,z:0,visibility:0}));
+          let image,world;if(window.testWorld){world=window.testWorld;image=world.map(p=>({x:.5+p.x*.375,y:.65+p.y*.5,z:p.z,visibility:p.visibility}));}
+          else if(frame){image=Array.from({length:33},()=>({x:.5,y:.7,z:0,visibility:0}));world=Array.from({length:33},()=>({x:0,y:0,z:0,visibility:0}));
             const indices={leftShoulder:11,rightShoulder:12,leftElbow:13,rightElbow:14,leftWrist:15,rightWrist:16,leftHip:23,rightHip:24};
             for(const [name,i]of Object.entries(indices)){const joint=frame.joints[name],v=joint.position;world[i]={x:v[0]*.4,y:-v[1]*.4-.5,z:-v[2]*.4,visibility:joint.confidence};image[i]={x:.5+v[0]*.15,y:.4-v[1]*.15,z:-v[2]*.15,visibility:joint.confidence};}}
           queueMicrotask(()=>this.onmessage?.({data:{type:'pose',timestamp:data.timestamp,image,world,ms:0}}));}}
       terminate(){this.onmessage=null;}
     };''')
     live.goto(BASE+'/m3.html');live.wait_for_load_state('networkidle');live.wait_for_function("__M3_LAB__.snapshot().status==='ready'")
+    body_poses=json.loads((pathlib.Path(__file__).parent/'fixtures/m3-body-poses.json').read_text())
+    live.evaluate('''poses=>{window.setBodyPose=name=>{
+      window.testPose=null;window.testWorld=null;if(!name)return;
+      window.testWorld=Array.from({length:33},()=>({x:0,y:0,z:0,visibility:0}));
+      for(const [i,x,y,z] of poses[name])window.testWorld[i]={x,y,z,visibility:1};
+    };}''',body_poses)
     # Start is actionable before tracking: connect, wait visibly, and allow cancellation.
     assert live.locator('#start').is_enabled()
     live.locator('#start').click();live.wait_for_function('__M3_LAB__.tracker.connected')
@@ -103,15 +110,22 @@ with sync_playwright() as p:
     live.evaluate('window.testPose=null');live.wait_for_function('!__M3_LAB__.tracker.isStable()')
     live.locator('#start').click()
     live.wait_for_function("document.getElementById('start').textContent==='取消等待'")
-    live.evaluate('window.testPose=testSamples[0].frames[0]')
+    live.evaluate("setBodyPose('rest')")
+    live.wait_for_function("__M3_LAB__.snapshot().status==='running'")
+    live.wait_for_timeout(500)
+    assert live.evaluate('__M3_LAB__.snapshot().spell.phase')=='idle'
+    assert '手肘自然下垂' in live.locator('#motion-feedback').inner_text()
+    assert live.locator('#motion-progress').is_visible()
+    live.evaluate("setBodyPose('gather')")
     live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='charging'")
+    live.screenshot(path=str(OUT/'m3-natural-gather.png'),full_page=True)
     assert live.evaluate('__M3_LAB__.snapshot().config.runId')!=demo_run
     assert live.evaluate('__M3_LAB__.snapshot().mode')=='live'
-    live.evaluate('window.testPose=null');live.wait_for_function("__M3_LAB__.snapshot().tracking==='lost'")
+    live.evaluate('setBodyPose(null)');live.wait_for_function("__M3_LAB__.snapshot().tracking==='lost'")
     assert live.evaluate('__M3_LAB__.snapshot().spell.phase')=='charging'
-    live.evaluate('window.testPose=testSamples[1].frames[0]');live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='expanded'")
-    live.evaluate('window.testPose=testSamples[2].frames[0]');live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='launched'")
-    live.evaluate('window.testPose=null');live.wait_for_function("__M3_LAB__.snapshot().result?.status==='completed'")
+    live.evaluate("setBodyPose('spread')");live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='expanded'")
+    live.evaluate("setBodyPose('lift')");live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='launched'")
+    live.evaluate('setBodyPose(null)');live.wait_for_function("__M3_LAB__.snapshot().result?.status==='completed'")
     result=live.evaluate('__M3_LAB__.snapshot().result')
     assert result['mode']=='live' # Synthetic input to live path, NOT a real-human acceptance.
     live.locator('#connect').click();assert not live.evaluate('__M3_LAB__.tracker.connected')

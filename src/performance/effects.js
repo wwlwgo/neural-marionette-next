@@ -3,7 +3,7 @@ import * as THREE from 'three';
 // Scene feedback owns completion: contact is required before the moon can rise.
 export function createEffects(scene) {
   const ball = new THREE.Group(); scene.add(ball);
-  const core = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), new THREE.MeshStandardMaterial({color: '#9be8ef', emissive: '#9be8ef', emissiveIntensity: 1.5, transparent: true, opacity: .42, roughness: .25}));
+  const core = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), new THREE.MeshBasicMaterial({color: '#9be8ef', transparent: true, opacity: .88, depthWrite: false, toneMapped: false}));
   ball.add(core);
   const rings = [0, 1, 2].map(i => {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(1.07, .022, 8, 80), new THREE.MeshBasicMaterial({color: ['#9be8ef', '#f1b8ed', '#ffebaf'][i], transparent: true, opacity: .85}));
@@ -23,7 +23,7 @@ export function createEffects(scene) {
   function reset() { phase = 'idle'; touched = restored = false; moon.position.copy(base); ball.visible = false; ball.position.set(0, 1.8, 0); }
   reset();
   return {
-    configure({color = '#9be8ef', sizeScale: size = 1} = {}) { sizeScale = size; core.material.color.set(color); core.material.emissive.set(color); rings[0].material.color.set(color); },
+    configure({color = '#9be8ef', sizeScale: size = 1} = {}) { sizeScale = size; core.material.color.set(color); rings[0].material.color.set(color); },
     reset,
     update(state, time, hands, dt = 0) {
       if (state.phase === 'idle' && phase !== 'idle') reset();

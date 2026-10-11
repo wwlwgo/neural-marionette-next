@@ -9,7 +9,24 @@ let samples=structuredClone(sampleFixtures),config=configFixture(),manualIndex=n
 const sampleStore={get:async id=>structuredClone(samples.find(s=>s.sampleId===id))||await persistentStore.get(id)};
 const module=new PerformanceModule({tracker,sampleStore,demoFrameProvider:()=>manualIndex===null?null:samples.find(s=>s.sampleId===config.motion.nodes[manualIndex].sampleId).frames[0]});
 const events=[];
-const labels={idle:'聚拢双手，保持片刻',charging:'慢慢拉开双手',expanded:'双手向上托举',launched:'能量正在托起月亮…',complete:'月亮回到天空！'};
+const labels={idle:'手肘自然下垂，双手靠近胸前',charging:'慢慢拉开双手',expanded:'双手向上托举',launched:'能量正在托起月亮…',complete:'月亮回到天空！'};
+const gestureTips=['手肘自然下垂，双手在胸前相距约一拳','双手向两侧展开，抬到肩膀附近','从展开姿势向上托举，双手举过头顶'];
+function motionFeedback(s){
+  const live=s.status==='running'&&s.mode==='live',index=s.spell?.sequence??0,node=config.motion.nodes[index];
+  const progress=$('motion-progress');progress.hidden=!live||!node;progress.value=0;
+  let text='点击开始施法后，按顺序完成三个动作。';
+  if(pendingStart)text='等待识别身体：请让双肩、手肘和双手进入画面。';
+  else if(live){
+    if(!node)text='三个动作已完成，能量正在托起月亮。';
+    else if(s.paused)text='施法已暂停，点击「继续」后再做动作。';
+    else if(s.tracking!=='valid')text=`第 ${index+1} 步：请露出双肩、手肘和双手。`;
+    else if(s.spell.dwellMs>0){progress.value=Math.min(100,Math.round(s.spell.dwellMs/node.holdMs*100));text=`第 ${index+1} 步姿势已匹配，请保持 · ${progress.value}%`;}
+    else text=`第 ${index+1} 步${node.label||''}：${node.sampleId===sampleFixtures[index].sampleId?gestureTips[index]:'请对照本轮动作示范调整姿势'}，保持片刻。`;
+  }else if(s.status==='ready'&&tracker.connected)text='角色正在跟随你；点击「开始施法」后才会生成能量球。';
+  else if(s.status==='running'&&s.mode==='demo')text='正在播放示范，完成后可以亲自试试。';
+  else if(s.result?.status==='completed')text='本轮已完成，可以再来一次。';
+  $('motion-feedback').textContent=text;
+}
 function message(text){$('message').textContent=text;}
 function report(error){message(error.name==='NotAllowedError'?'摄像头权限未允许。请在浏览器与系统设置中开启后重试。':error.message);}
 function controls(){
@@ -22,6 +39,7 @@ function controls(){
   $('pause').textContent=s.paused?'继续':'暂停';
   for(const id of ['color','size','import'])$(id).disabled=loading||running||startBusy||pendingStart;
   for(const button of document.querySelectorAll('[data-pose],#auto'))button.disabled=loading||startBusy||pendingStart||(running&&s.mode==='live');
+  motionFeedback(s);
 }
 function cancelStart(){startRequest++;pendingStart=false;startBusy=false;}
 async function tryStart(){

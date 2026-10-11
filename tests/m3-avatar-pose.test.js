@@ -1,7 +1,15 @@
 // Adapted from energy-avatar dc467c9; regression for the shared body mapping.
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mapPose} from '../src/motion/avatar-pose.js';
+import {mapPose,demoPose} from '../src/motion/avatar-pose.js';
+test('gather demo keeps elbows below and outside shoulders with continuous fixed-length arms',()=>{
+  const gather=demoPose(1);
+  for(const side of ['l','r']){
+    assert.ok(gather[side+'e'][1]<gather[side+'w'][1]);
+    assert.ok(Math.abs(gather[side+'e'][0])>Math.abs(gather[side+'s'][0]));
+  }
+  for(let t=0;t<8;t+=.05){const p=demoPose(t);for(const side of ['l','r'])for(const [a,b,length] of [['s','e',.65],['e','w',.57]])assert.ok(Math.abs(Math.hypot(...p[side+a].map((v,i)=>v-p[side+b][i]))-length)<1e-9);}
+});
 function sample(){const p=Array.from({length:33},()=>({x:0,y:0,z:0,visibility:0}));for(const [i,x,y,z] of [[11,-.2,-.5,0],[12,.2,-.5,0],[13,-.5,-.1,-.1],[14,.5,-.1,0],[15,-.6,.2,-.2],[16,.6,.2,0]])p[i]={x,y,z,visibility:1};return p;}
 test('upper body works with both hips out of frame; arm proportions stay fixed',()=>{const p=sample();const r=mapPose(p,p);assert.ok(r.complete);for(const [a,b,length] of [['ls','le',.65],['le','lw',.57],['rs','re',.65],['re','rw',.57]])assert.ok(Math.abs(Math.hypot(...r.points[a].map((v,i)=>v-r.points[b][i]))-length)<1e-9);});
 test('mirror flips left/right placement without flipping vertical movement',()=>{const p=sample();const a=mapPose(p,p,{mirror:true}).points;const b=mapPose(p,p,{mirror:false}).points;assert.equal(a.lw[0],-b.lw[0]);assert.equal(a.lw[1],b.lw[1]);});

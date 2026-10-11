@@ -13,13 +13,15 @@
         <p class="privacy">画面仅在本机处理，不录制、不上传。</p>
         <button id="connect" class="button secondary">连接摄像头</button>
         <button id="start" class="button primary" disabled>我准备好了，开始施法</button>
+        <p id="motion-feedback">点击开始施法后，按顺序完成三个动作。</p>
+        <progress id="motion-progress" max="100" value="0" aria-label="当前动作保持进度" hidden></progress>
         <div class="or"><span></span>先看看怎么玩<span></span></div>
         <button id="demo" class="button secondary" disabled>播放动作示范</button>
         <p id="message" role="status" aria-live="polite">正在加载角色与动作样本。</p>
       </aside>
     </div>
     <section class="sequence" aria-label="施法步骤">
-      <div class="step" data-index="0"><span class="number">1</span><div><h3>聚拢</h3><p>双手靠近胸前，保持片刻</p></div></div>
+      <div class="step" data-index="0"><span class="number">1</span><div><h3>聚拢</h3><p>手肘自然下垂，双手在胸前相距约一拳</p></div></div>
       <div class="step" data-index="1"><span class="number">2</span><div><h3>展开</h3><p>慢慢拉开，让能量球长大</p></div></div>
       <div class="step" data-index="2"><span class="number">3</span><div><h3>上推</h3><p>双手向上，把力量送给月亮</p></div></div>
     </section>

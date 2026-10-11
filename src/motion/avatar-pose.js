@@ -43,8 +43,12 @@ function reach(p,side,wrist){
   const s=p[side+'s'],d=sub(wrist,s),length=clamp(Math.hypot(...d),.081,1.219),u=unit(d);
   const along=(.65*.65-.57*.57+length*length)/(2*length);
   const height=Math.sqrt(Math.max(0,.65*.65-along*along));
-  const bend=unit([-u[1],u[0],0]);
-  p[side+'e']=add(add(s,mul(u,along)),mul(bend,height*(side==='l'?1:-1)));
+  // Choose the lower, outward elbow solution throughout the gesture. Project
+  // onto the arm's bend plane so both limb lengths remain unchanged.
+  const preferred=[side==='l'?-.35:.35,-1,0];
+  const projection=preferred.reduce((sum,v,i)=>sum+v*u[i],0);
+  const bend=unit(sub(preferred,mul(u,projection)));
+  p[side+'e']=add(add(s,mul(u,along)),mul(bend,height));
   p[side+'w']=add(s,mul(u,length));
 }
 export function demoPose(t){
