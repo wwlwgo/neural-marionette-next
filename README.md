@@ -1,6 +1,6 @@
 # Neural Marionette Next
 
-两人协作开发的新项目，以已发布的 V2 鹿角机甲为起点。当前应用仍是手势操控 3D 机器人的可运行基线；新产品方向与第一阶段需求尚待双方确定。
+两人协作开发的新项目，以已发布的 V2 鹿角机甲为起点。当前应用仍是手势操控 3D 机器人的可运行基线；儿童互动绘本 MVP 的三模块方案与协作计划见下方产品文档。
 
 **首次接手请阅读 [HANDOFF.md：伙伴初始化与项目交接手册](HANDOFF.md)。**
 
@@ -46,6 +46,9 @@ npm run build
 
 ## 文档
 
+- [儿童互动绘本 MVP 框架与模块接口](docs/PRODUCT_SPEC.md)
+- [三模块开发与双人协作计划](docs/PROJECT_STAGES.md)
+- [三模块 MVP 接口协议](docs/MODULE_INTERFACES.md)
 - [项目交接与协作手册](HANDOFF.md)
 - [来源与初始化差异](UPSTREAM.md)
 - [技术培训文档](docs/TECHNICAL_TRAINING.md)
