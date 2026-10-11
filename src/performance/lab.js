@@ -5,14 +5,38 @@ import {IndexedDBSampleStore,prepareTemplates} from '../motion/templates.js';
 import {configFixture,sampleFixtures} from '../../fixtures/m3/moon-spell.js';
 const $=id=>document.getElementById(id);
 const tracker=new PoseTracker($('camera')),persistentStore=new IndexedDBSampleStore();
-let samples=structuredClone(sampleFixtures),config=configFixture(),manualIndex=null,loading=false,endingReturnFocus=null;
+let samples=structuredClone(sampleFixtures),config=configFixture(),manualIndex=null,loading=false,endingReturnFocus=null,pendingStart=false,startBusy=false,startRequest=0;
 const sampleStore={get:async id=>structuredClone(samples.find(s=>s.sampleId===id))||await persistentStore.get(id)};
 const module=new PerformanceModule({tracker,sampleStore,demoFrameProvider:()=>manualIndex===null?null:samples.find(s=>s.sampleId===config.motion.nodes[manualIndex].sampleId).frames[0]});
 const events=[];
 const labels={idle:'聚拢双手，保持片刻',charging:'慢慢拉开双手',expanded:'双手向上托举',launched:'能量正在托起月亮…',complete:'月亮回到天空！'};
 function message(text){$('message').textContent=text;}
 function report(error){message(error.name==='NotAllowedError'?'摄像头权限未允许。请在浏览器与系统设置中开启后重试。':error.message);}
-function controls(){const s=module.snapshot();const running=s.status==='running',ready=s.status==='ready';$('demo').disabled=loading||!ready;$('start').disabled=loading||!ready||!tracker.isStable();$('pause').disabled=!running;$('cancel').disabled=!running;$('reset').disabled=loading||s.status==='empty';$('pause').textContent=s.paused?'继续':'暂停';for(const id of ['color','size','import'])$(id).disabled=loading||running;}
+function controls(){
+  const s=module.snapshot(),running=s.status==='running',ready=['ready','finished'].includes(s.status);
+  $('demo').disabled=loading||startBusy||pendingStart||!ready;
+  $('start').disabled=loading||startBusy||!ready;
+  $('start').textContent=pendingStart?'取消等待':startBusy?'正在准备施法…':!tracker.connected?'连接摄像头并开始施法':'我准备好了，开始施法';
+  $('pause').disabled=!running;$('cancel').disabled=!running;
+  $('reset').disabled=loading||startBusy||s.status==='empty';
+  $('pause').textContent=s.paused?'继续':'暂停';
+  for(const id of ['color','size','import'])$(id).disabled=loading||running||startBusy||pendingStart;
+  for(const button of document.querySelectorAll('[data-pose],#auto'))button.disabled=loading||startBusy||pendingStart||(running&&s.mode==='live');
+}
+function cancelStart(){startRequest++;pendingStart=false;startBusy=false;}
+async function tryStart(){
+  if(!pendingStart||module.status!=='ready'||!tracker.isStable())return;
+  pendingStart=false;
+  try{await module.start('live');$('mode').textContent='真人施法';message('请按顺序做出三个动作，系统会等待你。');}
+  catch(error){report(error);}controls();
+}
+async function connectCamera(){
+  $('connect').textContent='取消连接';message('正在准备本地身体识别，随后请求摄像头权限。');
+  await tracker.connect();
+  if(tracker.connected){$('camera-empty').hidden=true;$('connect').textContent='关闭摄像头';$('mode').textContent='摄像头已连接';}
+  else $('connect').textContent='连接摄像头';
+}
+
 async function load(){
   loading=true;controls();$('ending').hidden=true;config={...config,runId:crypto.randomUUID(),effect:{...config.effect,color:$('color').value,sizeScale:Number($('size').value)}};
   try{await module.load($('stage'),config);message('守护者准备好了。你可以先看示范，或连接摄像头。');}catch(error){report(error);}finally{loading=false;controls();}
@@ -29,19 +53,31 @@ module.subscribe(event=>{
 });
 tracker.subscribe(packet=>{
   $('tracking').textContent=packet.frame.tracking==='valid'?(packet.fullBody?'全身跟随':'上半身跟随'):packet.frame.tracking==='partial'?'请露出双手':'请进入画面';
-  if(packet.error)report(packet.error);
+  if(packet.error){cancelStart();report(packet.error);$('connect').textContent='连接摄像头';$('camera-empty').hidden=false;$('mode').textContent='摄像头未开启';}
   const canvas=$('overlay'),ctx=canvas.getContext('2d');canvas.width=$('camera').videoWidth||640;canvas.height=$('camera').videoHeight||480;ctx.clearRect(0,0,canvas.width,canvas.height);
   if(packet.image){ctx.strokeStyle='#a9f0db';ctx.lineWidth=3;for(const [a,b]of [[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24]])if(packet.image[a]?.visibility>.5&&packet.image[b]?.visibility>.5){ctx.beginPath();ctx.moveTo(packet.image[a].x*canvas.width,packet.image[a].y*canvas.height);ctx.lineTo(packet.image[b].x*canvas.width,packet.image[b].y*canvas.height);ctx.stroke();}}
   controls();
 });
 $('connect').onclick=async()=>{
-  if(tracker.connected||tracker.connecting){module.cancel();tracker.stop();$('connect').textContent='连接摄像头';$('camera-empty').hidden=false;$('mode').textContent='摄像头未开启';controls();return;}
-  $('connect').textContent='取消连接';message('正在准备本地身体识别，随后请求摄像头权限。');
-  try{await tracker.connect();if(tracker.connected){$('camera-empty').hidden=true;$('connect').textContent='关闭摄像头';$('mode').textContent='摄像头已连接';message('双肩、手肘和手腕稳定可见后，点击开始施法。');}}
+  if(tracker.connected||tracker.connecting){cancelStart();module.cancel();tracker.stop();$('connect').textContent='连接摄像头';$('camera-empty').hidden=false;$('mode').textContent='摄像头未开启';controls();return;}
+  try{await connectCamera();if(tracker.connected)message('摄像头已连接。点击开始施法，再让双肩、手肘和手腕进入画面。');}
   catch(error){if(error.name!=='AbortError')report(error);$('connect').textContent='连接摄像头';}controls();
 };
-$('start').onclick=async()=>{try{await module.start('live');$('mode').textContent='真人施法';message('请按顺序做出三个动作，系统会等待你。');}catch(error){report(error);}controls();};
-$('demo').onclick=async()=>{try{manualIndex=null;await module.start('demo');$('mode').textContent='动作示范 · 非真人';}catch(error){report(error);}controls();};
+$('start').onclick=async()=>{
+  if(pendingStart){cancelStart();message('已取消等待，准备好后可以重新开始。');controls();return;}
+  const request=++startRequest;startBusy=true;manualIndex=null;controls();
+  try{
+    dismissEnding();
+    if(module.status==='finished')await load();
+    if(request!==startRequest||module.status!=='ready')return;
+    if(!tracker.connected)await connectCamera();
+    if(request!==startRequest||!tracker.connected)return;
+    pendingStart=true;message('等待身体进入画面：请露出双肩、手肘和双手，稳定片刻后自动开始。');
+    await tryStart();
+  }catch(error){if(error.name!=='AbortError')report(error);if(!tracker.connected)$('connect').textContent='连接摄像头';}
+  finally{if(request===startRequest)startBusy=false;controls();}
+};
+$('demo').onclick=async()=>{try{cancelStart();manualIndex=null;if(module.status==='finished')await load();await module.start('demo');$('mode').textContent='动作示范 · 非真人';}catch(error){report(error);}controls();};
 $('pause').onclick=async()=>{try{if(module.paused)await module.resume();else module.pause();}catch(error){report(error);}controls();};
 function dismissEnding(){
   if($('ending').hidden)return;
@@ -52,7 +88,7 @@ function dismissEnding(){
 $('ending-close').onclick=dismissEnding;
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('ending').hidden){event.preventDefault();dismissEnding();}});
 $('cancel').onclick=()=>{module.cancel();controls();};
-async function restart(){manualIndex=null;dismissEnding();await load();$('demo').focus({preventScroll:true});}
+async function restart(){cancelStart();manualIndex=null;dismissEnding();await load();$('demo').focus({preventScroll:true});}
 $('reset').onclick=restart;$('ending-again').onclick=restart;
 $('color').onchange=load;$('size').onchange=load;
 $('mirror').onchange=()=>{tracker.mirror=$('mirror').checked;tracker.recenter();for(const id of ['camera','overlay'])$(id).style.transform=$('mirror').checked?'scaleX(-1)':'none';};
@@ -76,9 +112,9 @@ $('import').onchange=async()=>{
 };
 $('export').onclick=()=>{const blob=new Blob([JSON.stringify({schemaVersion:1,config,samples},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='m3-sample-bundle.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 let previousUpdate=0,uiRaf;
-function update(time){if(time-previousUpdate>120){previousUpdate=time;const s=module.snapshot();document.querySelectorAll('.step').forEach((el,i)=>{el.classList.toggle('active',s.spell?.sequence===i&&s.status==='running');el.classList.toggle('done',s.spell?.sequence>i);});$('diagnostics').textContent=JSON.stringify({runId:config.runId,mode:s.mode,status:s.status,phase:s.spell?.phase,tracking:s.tracking,distance:s.spell?.distance,holdMs:s.spell?.dwellMs,result:s.result},null,2);controls();}uiRaf=requestAnimationFrame(update);}
+function update(time){if(time-previousUpdate>120){previousUpdate=time;tryStart();const s=module.snapshot();document.querySelectorAll('.step').forEach((el,i)=>{el.classList.toggle('active',s.spell?.sequence===i&&s.status==='running');el.classList.toggle('done',s.spell?.sequence>i);});$('diagnostics').textContent=JSON.stringify({runId:config.runId,mode:s.mode,status:s.status,phase:s.spell?.phase,tracking:s.tracking,distance:s.spell?.distance,holdMs:s.spell?.dwellMs,result:s.result},null,2);controls();}uiRaf=requestAnimationFrame(update);}
 window.addEventListener('pagehide',()=>{cancelAnimationFrame(uiRaf);module.dispose();tracker.dispose();});
-document.addEventListener('visibilitychange',()=>{if(document.hidden)module.pause();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelStart();module.pause();controls();}});
 window.__M3_LAB__={module,tracker,snapshot:()=>module.snapshot(),events};
 async function boot(){
   try{const saved=JSON.parse(localStorage.getItem('m3-last-config')||'null');if(saved){const restored=await Promise.all(saved.motion.nodes.map(n=>persistentStore.get(n.sampleId)));prepareTemplates(saved,restored);config=saved;samples=restored;$('color').value=config.effect.color;$('size').value=config.effect.sizeScale;$('sample-status').textContent='已恢复上次导入的作品与本地动作样本。';}}

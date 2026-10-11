@@ -83,11 +83,30 @@ with sync_playwright() as p:
       terminate(){this.onmessage=null;}
     };''')
     live.goto(BASE+'/m3.html');live.wait_for_load_state('networkidle');live.wait_for_function("__M3_LAB__.snapshot().status==='ready'")
+    # Start is actionable before tracking: connect, wait visibly, and allow cancellation.
+    assert live.locator('#start').is_enabled()
+    live.locator('#start').click();live.wait_for_function('__M3_LAB__.tracker.connected')
+    live.wait_for_function("document.getElementById('start').textContent==='取消等待'")
+    assert live.evaluate('__M3_LAB__.snapshot().status')=='ready'
+    live.locator('#start').click()
     live.evaluate("async()=>{window.testSamples=(await import('/fixtures/m3/moon-spell.js')).sampleFixtures;window.testPose=testSamples[0].frames[0];}")
-    live.locator('#connect').click();live.wait_for_function('__M3_LAB__.tracker.isStable()')
-    # Before start, the avatar must already follow the camera pose.
+    live.wait_for_function('__M3_LAB__.tracker.isStable()')
+    # A cancelled wait must not start when the person subsequently enters the frame.
+    live.wait_for_timeout(400)
+    assert live.evaluate('__M3_LAB__.snapshot().status')=='ready'
     live.wait_for_function("Math.abs(__M3_LAB__.snapshot().stage.points.lw[1]-.94)>.1")
-    live.locator('#start').click();live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='charging'")
+    # Demo -> dismiss -> live is a fresh run, with no hidden Reset prerequisite.
+    live.locator('#demo').click();live.wait_for_function("__M3_LAB__.snapshot().result?.status==='completed'",timeout=20000)
+    demo_run=live.evaluate('__M3_LAB__.snapshot().config.runId')
+    live.locator('#ending-close').click()
+    assert live.locator('#start').is_enabled()
+    live.evaluate('window.testPose=null');live.wait_for_function('!__M3_LAB__.tracker.isStable()')
+    live.locator('#start').click()
+    live.wait_for_function("document.getElementById('start').textContent==='取消等待'")
+    live.evaluate('window.testPose=testSamples[0].frames[0]')
+    live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='charging'")
+    assert live.evaluate('__M3_LAB__.snapshot().config.runId')!=demo_run
+    assert live.evaluate('__M3_LAB__.snapshot().mode')=='live'
     live.evaluate('window.testPose=null');live.wait_for_function("__M3_LAB__.snapshot().tracking==='lost'")
     assert live.evaluate('__M3_LAB__.snapshot().spell.phase')=='charging'
     live.evaluate('window.testPose=testSamples[1].frames[0]');live.wait_for_function("__M3_LAB__.snapshot().spell.phase==='expanded'")
@@ -98,5 +117,5 @@ with sync_playwright() as p:
     live.locator('#connect').click();assert not live.evaluate('__M3_LAB__.tracker.connected')
     live.evaluate('__M3_LAB__.module.dispose()');assert live.locator('#stage canvas').count()==0
     assert not errors,errors
-    report={'realGLB':'passed','sequentialButtons':'passed','threeRounds':'passed','pauseCancelReset':'passed','M1BundlePersistence':'passed','realWorkerBlankFrame':worker_result,'syntheticCameraLivePath':'passed (not human acceptance)','mobile':'passed','pageErrors':errors,'humanCamera':'NOT TESTED','evidence':str(OUT)}
+    report={'realGLB':'passed','sequentialButtons':'passed','threeRounds':'passed','pauseCancelReset':'passed','M1BundlePersistence':'passed','realWorkerBlankFrame':worker_result,'syntheticCameraLivePath':'passed (not human acceptance)','startAndDemoToLive':'passed','mobile':'passed','pageErrors':errors,'humanCamera':'NOT TESTED','evidence':str(OUT)}
     (OUT/'results.json').write_text(json.dumps(report,ensure_ascii=False,indent=2));print(json.dumps(report,ensure_ascii=False));browser.close()
