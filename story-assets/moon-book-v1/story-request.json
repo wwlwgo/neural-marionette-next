@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "spellRef": {
+    "spellId": "moon-spell-v1",
+    "revision": 1
+  },
+  "hero": {
+    "name": "贾维斯",
+    "avatarId": "antler-guardian-v1",
+    "referenceImageUrl": "../characters/jarvis-v2-storybook-reference.png",
+    "palette": [
+      "#EADCC4",
+      "#D8A544",
+      "#183A69",
+      "#70DFFF"
+    ],
+    "identityNotes": "金色分枝鹿角、金白装甲、蓝色面罩与胸口光源的人形机甲"
+  },
+  "spell": {
+    "name": "彩虹托举",
+    "wishText": "把月亮轻轻送回天空",
+    "effectId": "energy-orb-v1",
+    "color": "#79DFFF",
+    "sizeScale": 1
+  },
+  "stageMeanings": [
+    "蓄力",
+    "展开",
+    "释放"
+  ],
+  "themeId": "save-the-moon",
+  "bodyPageCount": 5,
+  "language": "zh-CN",
+  "styleId": "crayon-picture-book-v1",
+  "ability": {
+    "stages": [
+      {
+        "order": 1,
+        "actionMeaning": "双手聚拢",
+        "effectMeaning": "聚集能量"
+      },
+      {
+        "order": 2,
+        "actionMeaning": "双手拉开",
+        "effectMeaning": "能量球变大"
+      },
+      {
+        "order": 3,
+        "actionMeaning": "双手上推",
+        "effectMeaning": "释放并向上托举"
+      }
+    ],
+    "capabilities": [
+      "lift"
+    ],
+    "outcomeId": "moon_restored"
+  }
+}
